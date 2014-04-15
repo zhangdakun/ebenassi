@@ -2,7 +2,9 @@ package cn.eben.pcagent;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.Intent;
 import android.view.Menu;
+import android.view.View;
 
 public class MainActivity extends Activity {
 
@@ -19,4 +21,7 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
+	public void onclick(View v) {
+		startService(new Intent("cn.eben.pcagent.start"));
+	}
 }

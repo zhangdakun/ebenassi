@@ -4,10 +4,14 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import android.R.string;
+
+import cn.eben.pcagent.AgentLog;
 import cn.eben.pcagent.agents.AgentMgr;
 
 
@@ -30,6 +34,7 @@ public class AgentRunnable implements Runnable {
     
     public static final int HEAD_FLAG = 0x360360;
     
+    public static final String TAG = "AgentRunnable";
     public AgentRunnable(Socket socket)
     {
 //        e = getClass().getSimpleName();
@@ -44,6 +49,8 @@ public class AgentRunnable implements Runnable {
         b = socket;
 //        m = d1;
         i = b.getInetAddress().getHostAddress();
+        
+        AgentLog.debug(TAG, "para : h, i, == "+h+", "+i);
 //        e = (new StringBuilder()).append(e).append("(").append(a()).append(")").toString();
     }
     public boolean g()
@@ -64,13 +71,13 @@ public class AgentRunnable implements Runnable {
 //        com.qihoo360.mobilesafe.util.h.b(s1, "Session Started of Socket, Local: %s, INet: %s", aobj);
         byte abyte0[];
         try {
-        	
+        	AgentLog.debug("agentrunnable", "run agent");
 			d = new DataInputStream(new BufferedInputStream(b.getInputStream(), 8096));
 
 	        c = new DataOutputStream(new BufferedOutputStream(b.getOutputStream(), 8096));
 	        abyte0 = new byte[4];
 	        l = Thread.currentThread();
-	        
+	        AgentMgr mgr = new AgentMgr();
         	int i1;
         	int k1;
         	String s6;
@@ -79,7 +86,8 @@ public class AgentRunnable implements Runnable {
         	PduBase resPduBase;
 //	        k = new b(this, l, 200L, 1000L);
 	        while(!b.isClosed()) {
-		        if(d.available() <= 0 || d.available() >= 4) {
+		        if(/*d.available() <= 0 || d.available() >= 4*/true) 
+		        {
 
 		        	i1 = d.readInt();   	
 		        	if(g()) {
@@ -96,10 +104,13 @@ public class AgentRunnable implements Runnable {
 				                
 				                pdubase2 = new PduBase((short) 1, abyte2);
 				                
-				                resPduBase = new AgentMgr().processPdu(pdubase2);
+				                resPduBase = mgr.processPdu(pdubase2);
 				                
 				                sendRespons(resPduBase);
 				        	}
+				        	
+		        		} else {
+		        			AgentLog.error(TAG, "error msg head: "+i1);
 		        		}
 		        		
 //		                s6 = e;
@@ -113,12 +124,46 @@ public class AgentRunnable implements Runnable {
 	//	            String s7 = e;
 		            Object aobj8[] = new Object[1];
 		            aobj8[0] = Integer.valueOf(d.read(abyte0));
+		            
+		            AgentLog.error(TAG, "error msg : "+new String(abyte0));
 		        }
 	        }
         
-		} catch (IOException e) {
+		}catch(EOFException e) {
+			e.printStackTrace();
+			try {
+				d.close();
+
+				c.close();
+				b.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}			
+		}
+        catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			try {
+				d.close();
+
+				c.close();
+				b.close();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			try {
+				d.close();
+
+				c.close();
+				b.close();
+			} catch (IOException e1) {
+				
+				e1.printStackTrace();
+			}		
 		}
         
         
@@ -127,11 +172,18 @@ public class AgentRunnable implements Runnable {
 
 	public boolean sendRespons(PduBase pdubase) {
 		
-		
+		AgentLog.debug("agent", "send response : "+pdubase);
 		try {
 			c.writeInt(HEAD_FLAG);
-            c.writeInt(pdubase.pdu.length);
-            c.write(pdubase.pdu);
+			if(null != pdubase && null != pdubase.pdu)  {
+	            c.writeInt(pdubase.pdu.length);
+	            c.write(pdubase.pdu);
+			} else {
+				byte[] ack = "cmd resp".getBytes("utf-8");
+	            c.writeInt(ack.length);
+	            c.write(ack);
+			}
+			c.flush();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

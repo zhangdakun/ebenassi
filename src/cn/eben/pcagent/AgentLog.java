@@ -26,7 +26,7 @@ public class AgentLog {
      */
     public static final int TRACE = 3;
     
-    public static int level = DEBUG;
+    public static int level = TRACE;
     
 	public static final void debug(String tag,String msg) {
 		if(level >= DEBUG) {

@@ -22,6 +22,7 @@ import android.os.IBinder;
 
 public class DaemonService extends Service {
 
+	public static final String TAG = "DaemonService";
 	
 	private static final Class<?>[] mSetForegroundSignature = new Class[] {
 	    boolean.class};
@@ -119,55 +120,169 @@ public class DaemonService extends Service {
 	public void onCreate() {
 		// TODO Auto-generated method stub
 		super.onCreate();
-        initMethod();
-        startForegroundCompat(0x0700012,new Notification());
+//        initMethod();
+//        startForegroundCompat(0x0700012,new Notification());
+        
+//		if(null == socketThread) {
+//			socketThread = new SocketThread(this,2001);
+//			socketThread.start();
+//		}
 	}
 
+	private SocketThread socketThread;
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		// TODO Auto-generated method stub
 //		return super.onStartCommand(intent, flags, startId);
+		AgentLog.debug(TAG, "onStartCommand");
+		if(null == socketThread
+				 || null == socketThread.getsocket() 
+				 || socketThread.getsocket().isClosed()) {
+
+			if( null != socketThread && null != socketThread.getsocket()) {
+				if(!socketThread.getsocket().isClosed()) {
+				try {
+					socketThread.getsocket().close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				}
+			}
+			if(null != socketThread && null != socketThread.getServer()) {
+				try {
+					socketThread.getServer().close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+			socketThread = new SocketThread(this,2001);
+			socketThread.start();
+		}
 		
-		
-		
-		return START_STICKY;
+//		return START_STICKY;
+		return START_NOT_STICKY;
+	}
+
+	@Override
+	public void onDestroy() {
+		// TODO Auto-generated method stub
+        if(socketThread != null)
+        {
+        	socketThread.shutdown();
+        	socketThread = null;
+        }
+        
+		super.onDestroy();
 	}
 
 	public class SocketThread extends Thread{
 //	    private static final boolean a;
 	    private int port;
 	    private ThreadPoolExecutor c;
-	    private boolean d;
+	    private boolean isShut;
 	    private ServerSocket e;
 //	    private final ag f;
 	    private final Context g;
+	    private Socket socket = null;
+	    
+	    SocketThread(Context context, int port)
+	    {
+//	        b = 3880;
+	        isShut = false;
+	        this.port = port;
+//	        f = ag1;
+	        g = context;
+	    }
+	    public Socket getsocket() {
+	    	return socket;
+	    }
+	    public ServerSocket getServer() {
+	    	return e;
+	    }
+	    
+	    public void shutdown()
+	    {
+	        if(!isShut)
+	        {
+	            isShut = true;
+	            try
+	            {
+	                if(e != null)
+	                    e.close();
+	                join(3000L);
+	            }
+	            catch(Exception exception) {
+	            	exception.printStackTrace();
+	            }
+	        }
+	    }
+	    
 		@Override
 		public void run() {
 			// TODO Auto-generated method stub
+			
 	        try {
-				e = new ServerSocket();
+	        	AgentLog.debug("socketThread", "run thread");
+	        	
+	        	if(null == e) {
+//	        		AgentLog.error(TAG, " release one connect"); 
+//	        		e.close();
+//	        		e=null;
+					e = new ServerSocket();
 
-	        e.bind(new InetSocketAddress("0.0.0.0", port));
-	        e.setReuseAddress(true);
-	        e.setPerformancePreferences(100, 100, 1);
-	        
+			        e.bind(new InetSocketAddress("127.0.0.1", port));
+			        e.setReuseAddress(true);
+			        e.setPerformancePreferences(100, 100, 1);
+	        	}
+
+	        	AgentLog.debug(TAG, "isbond, "+e.isBound()+",isclosed,  "+e.isClosed());
+	        	
 	        c = new ThreadPoolExecutor(10, 100, 60000L, TimeUnit.MICROSECONDS, 
 	        		new ArrayBlockingQueue(10), 
 	        		new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
 	        
 	        
-	        Socket socket;
+	        
 //	        com.qihoo360.mobilesafe.pcdaemon.service.a a1;
+	        socket = new Socket();
+	        AgentRunnable agent;
 	        socket = e.accept();
 	        socket.setPerformancePreferences(10, 100, 1);
 	        socket.setKeepAlive(true);
 	        socket.setSoLinger(true, 30);
 	        socket.setTcpNoDelay(true);
+	        
+	        agent = new AgentRunnable(socket);
+	        c.execute(agent);
+	        
 //	        a1 = f.a(this, socket);
 	        
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+			} 
+//	        catch (IOException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			} 
+	        catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+				if(c != null) {
+				c.shutdown();
+				c = null; 
+				}
+				
+				try {
+					if(null != socket)
+					socket.close();
+					socket = null;
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				
 			}
 		}
 		
