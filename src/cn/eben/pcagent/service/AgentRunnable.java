@@ -32,7 +32,7 @@ public class AgentRunnable implements Runnable {
     private Thread l;
 //    private final d m;
     
-    public static final int HEAD_FLAG = 0x360360;
+    public static final int EBEN_HEAD = 0x5757;
     
     public static final String TAG = "AgentRunnable";
     public AgentRunnable(Socket socket)
@@ -92,7 +92,7 @@ public class AgentRunnable implements Runnable {
 		        	i1 = d.readInt();   	
 		        	if(g()) {
 		        		// is local 127 address , do something to pref
-		        		if(i1 == HEAD_FLAG) 
+		        		if(i1 == EBEN_HEAD) 
 		        		{
 		        			// this is a heart beat ,not heart beat a flag for own
 //		        			break;
@@ -174,12 +174,12 @@ public class AgentRunnable implements Runnable {
 		
 		AgentLog.debug("agent", "send response : "+pdubase);
 		try {
-			c.writeInt(HEAD_FLAG);
+			c.writeInt(EBEN_HEAD);
 			if(null != pdubase && null != pdubase.pdu)  {
 	            c.writeInt(pdubase.pdu.length);
 	            c.write(pdubase.pdu);
 			} else {
-				byte[] ack = "cmd resp".getBytes("utf-8");
+				byte[] ack = "{result:\"error\",code:\"1\"}".getBytes("utf-8");
 	            c.writeInt(ack.length);
 	            c.write(ack);
 			}

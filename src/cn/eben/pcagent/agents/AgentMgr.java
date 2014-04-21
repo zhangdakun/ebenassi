@@ -20,10 +20,10 @@ public class AgentMgr {
 		try {
 			agentMap.put("getsysinfo", Class.forName("cn.eben.pcagent.agents.AgentSysInfo"));
 			agentMap.put("sysbackup", Class.forName("cn.eben.pcagent.agents.AgentSysBackup"));
-			agentMap.put("SysRecovery", Class.forName("cn.eben.pcagent.agents.AgentSysRecovery"));
-			agentMap.put("SwitchFileSys", Class.forName("cn.eben.pcagent.agents.AgentSwitchFileSys"));
-			agentMap.put("GetAppsInfo", Class.forName("cn.eben.pcagent.agents.AgentAppInfo"));
-			agentMap.put("ScreenSwitch", Class.forName("cn.eben.pcagent.agents.AgentScreenSwitch"));
+			agentMap.put("sysrecovery", Class.forName("cn.eben.pcagent.agents.AgentSysRecovery"));
+			agentMap.put("switchfilesys", Class.forName("cn.eben.pcagent.agents.AgentSwitchFileSys"));
+			agentMap.put("getappsinfo", Class.forName("cn.eben.pcagent.agents.AgentAppInfo"));
+			agentMap.put("scrmodeswitch", Class.forName("cn.eben.pcagent.agents.AgentScreenSwitch"));
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

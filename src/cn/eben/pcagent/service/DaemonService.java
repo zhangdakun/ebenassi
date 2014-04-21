@@ -24,6 +24,8 @@ public class DaemonService extends Service {
 
 	public static final String TAG = "DaemonService";
 	
+	public static final int PORT = 6001;
+	
 	private static final Class<?>[] mSetForegroundSignature = new Class[] {
 	    boolean.class};
 	private static final Class<?>[] mStartForegroundSignature = new Class[] {
@@ -123,10 +125,10 @@ public class DaemonService extends Service {
 //        initMethod();
 //        startForegroundCompat(0x0700012,new Notification());
         
-//		if(null == socketThread) {
-//			socketThread = new SocketThread(this,2001);
-//			socketThread.start();
-//		}
+		if(null == socketThread) {
+			socketThread = new SocketThread(this,PORT);
+			socketThread.start();
+		}
 	}
 
 	private SocketThread socketThread;
@@ -135,33 +137,34 @@ public class DaemonService extends Service {
 		// TODO Auto-generated method stub
 //		return super.onStartCommand(intent, flags, startId);
 		AgentLog.debug(TAG, "onStartCommand");
-		if(null == socketThread
-				 || null == socketThread.getsocket() 
-				 || socketThread.getsocket().isClosed()) {
-
-			if( null != socketThread && null != socketThread.getsocket()) {
-				if(!socketThread.getsocket().isClosed()) {
-				try {
-					socketThread.getsocket().close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-
-				}
-			}
-			if(null != socketThread && null != socketThread.getServer()) {
-				try {
-					socketThread.getServer().close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			
-			socketThread = new SocketThread(this,2001);
-			socketThread.start();
-		}
+//		if(null == socketThread
+//				 || null == socketThread.getsocket() 
+//				 || socketThread.getsocket().isClosed()) {
+//
+//			if( null != socketThread && null != socketThread.getsocket()) {
+//				if(!socketThread.getsocket().isClosed()) {
+//				try {
+//					socketThread.getsocket().close();
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//
+//				}
+//			}
+//			if(null != socketThread && null != socketThread.getServer()) {
+//				try {
+//					socketThread.getServer().close();
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			}
+//			
+//			socketThread = new SocketThread(this,6001);
+//			socketThread.start();
+//			
+//		}
 		
 //		return START_STICKY;
 		return START_NOT_STICKY;
@@ -245,6 +248,12 @@ public class DaemonService extends Service {
 	        		new ArrayBlockingQueue(10), 
 	        		new java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy());
 	        
+	        if(isShut) {
+	        	AgentLog.error(TAG, "got shut down");
+	        	c.shutdown();
+	        	c = null;
+	        	return;
+	        }
 	        
 	        
 //	        com.qihoo360.mobilesafe.pcdaemon.service.a a1;
@@ -268,12 +277,7 @@ public class DaemonService extends Service {
 //			} 
 	        catch (Exception e) {
 				// TODO: handle exception
-				e.printStackTrace();
-				if(c != null) {
-				c.shutdown();
-				c = null; 
-				}
-				
+	        	e.printStackTrace();
 				try {
 					if(null != socket)
 					socket.close();
@@ -282,6 +286,14 @@ public class DaemonService extends Service {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
+				
+				
+				if(c != null) {
+				c.shutdown();
+				c = null; 
+				}
+				
+
 				
 			}
 		}
