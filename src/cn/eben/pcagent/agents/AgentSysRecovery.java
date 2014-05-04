@@ -11,6 +11,10 @@ public class AgentSysRecovery implements AgentBase{
 	@Override
 	public PduBase processCmd(String data) {
 		// TODO Auto-generated method stub
+		//{“ver”:1,”op”:”recoverysys”, “dsts”:[{“package”:”cn.eben.enote”,”type”:”db”, “URI”:”/mydoc/enote”},…]}
+		//{“result”:”ok”,”code”:0}
+		//或者:{“result”:”reason”,”code”:x}
+		//URI：为db的URI，数据文件存放目录同备份，Agent根据相同规则获取本地文件
 		
 		AgentLog.debug(TAG, "processCmd : "+data);
 		

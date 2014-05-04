@@ -84,7 +84,7 @@ public class AgentAppInfo implements AgentBase{
 	}
 	
 	
-//	{result:ok,code:0,apps:[{package:cn.eben.sync,name:mc,version:1.2,size:123k,icon:xxxx},бн]}
+//	{result:ok,code:0,apps:[{vercode:1,package:cn.eben.sync,name:appname,version:1.2,vercode:14,size:123k,icon:xxxx},бн]}
 	@Override
 	public PduBase processCmd(String data) {
 		// TODO Auto-generated method stub
@@ -110,7 +110,7 @@ public class AgentAppInfo implements AgentBase{
 					e.printStackTrace();
 				}
 				try {
-					jPackage.put("name", app.activityName);
+					jPackage.put("name", app.getAppLabel());
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -133,7 +133,12 @@ public class AgentAppInfo implements AgentBase{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
+				try {
+					jPackage.put("vercode", app.vc);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}				
 				ja.put(jPackage);
 			}
 		}

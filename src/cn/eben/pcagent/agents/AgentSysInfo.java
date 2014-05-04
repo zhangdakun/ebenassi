@@ -19,7 +19,7 @@ public class AgentSysInfo implements AgentBase{
 	
 //	{ver:1,op:getsysinfo}
 //
-//	{result:ok,code:0,dev:¡±Eben T8¡±,SN:H7xxxx,fwver:2.2,total:16G,free:7.3G}
+//	{result:ok,code:0,dev:¡±Eben T8¡±,SN:H7xxxx,fwver:2.2,total:16G,free:7.3G,sysver:4.2.2}
 	public PduBase processCmd(String data) {
 		// TODO Auto-generated method stub
 		
@@ -48,6 +48,8 @@ public class AgentSysInfo implements AgentBase{
 		
 		String id = Build.ID;
 		String simpleId = null;
+		String release = Build.VERSION.RELEASE;
+		
 		if(null != id) {
 			String[]  part= new String(id).split("\\.");
 
@@ -75,13 +77,19 @@ public class AgentSysInfo implements AgentBase{
 		AgentLog.debug(TAG, "mem toal : free ,"+total+", "+free);
 
 		String sn = DeviceProperties.getSn();
+		if(null == sn) {
+			sn = "";
+		}
 		AgentLog.debug(TAG, "sn : "+sn);
 		
 		
 		JSONObject jo = new JSONObject();
+		if(null == dev) {
+			dev = "";
+		}
 		if(null != dev) {
 			try {
-				jo.put("dev", dev);
+				jo.put("product", dev);
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -111,20 +119,39 @@ public class AgentSysInfo implements AgentBase{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
-		
-		if(total>0) {
+		} else {
 			try {
-				jo.put("total", String.valueOf(total));
+				jo.put("fwver", "");
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		
-		if(free >=0) {
+//		if(total>0) {
 			try {
-				jo.put("free", free);
+				jo.put("total", String.valueOf(total));
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+//		}
+		
+//		if(free >=0) {
+			try {
+				jo.put("free",  String.valueOf(free));
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+//		}
+		
+		if(null == release) {
+			release = "";
+		}
+		if(null != release) {
+			try {
+				jo.put("sysver", release);
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
