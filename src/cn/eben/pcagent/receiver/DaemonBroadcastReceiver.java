@@ -17,10 +17,14 @@ public class DaemonBroadcastReceiver extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
 		// TODO Auto-generated method stub
 		String s;
+		if(null == intent) {
+			AgentLog.error(TAG, "error ,recv a null intent");
+			return;
+		}
 		int i = intent.getIntExtra("PCVersion", 0);
 
 		s = intent.getAction();
-		AgentLog.debug(TAG, "onReceive ,actiong ," + s + ", version: " + i);
+		AgentLog.info(TAG, "onReceive ,actiong ," + s + ", version: " + i);
 		if ("cn.eben.pcdaemon.NotifyServiceStart".equalsIgnoreCase(s)) {
 
 			Intent intent1 = new Intent(context, DaemonService.class);

@@ -256,7 +256,7 @@ public class DaemonService extends Service {
 	        }
 	        
 	        
-//	        com.qihoo360.mobilesafe.pcdaemon.service.a a1;
+
 	        socket = new Socket();
 	        AgentRunnable agent;
 	        socket = e.accept();

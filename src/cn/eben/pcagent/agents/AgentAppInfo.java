@@ -15,6 +15,7 @@ import org.json.JSONObject;
 
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -38,7 +39,7 @@ public class AgentAppInfo implements AgentBase{
 
 	public static final String TAG = "AgentAppInfo";
 	
-	private String sdCardRoot;
+//	private String sdCardRoot;
 	List<AppInfo> mlistAppInfo = null;
 	class AppInfo {  
 	    
@@ -92,9 +93,9 @@ public class AgentAppInfo implements AgentBase{
 //				+"EbenAgent"+File.separator;
 		
 		
-		sdCardRoot=Contants.sdCardRoot;
+//		sdCardRoot=Contants.sdCardRoot;
 		AgentLog.debug(TAG, "processCmd : "+data);
-		AgentLog.debug(TAG, "sdcard root : "+sdCardRoot);
+//		AgentLog.debug(TAG, "sdcard root : "+sdCardRoot);
 		JSONArray ja = new JSONArray();
 		JSONObject jPackage = new JSONObject();
 		
@@ -167,8 +168,24 @@ public class AgentAppInfo implements AgentBase{
 		return new PduBase(jPackage.toString());
 	}
 
+	private boolean hasPackageExist(String pkg) {
+		if(null == mlistAppInfo )
+			return false;
+		boolean isExist = false;
+		for(AppInfo appinfo:mlistAppInfo) {
+			if(pkg.equalsIgnoreCase(appinfo.getPkgName())) {
+				isExist = true;
+				break;
+			}
+		}
+		
+		return isExist;
+	}
 	public void queryAppInfo() {  
         PackageManager pm = App.getInstance().getApplicationContext().getPackageManager(); 
+        List<ApplicationInfo>  applist 
+        = pm.getInstalledApplications(PackageManager.GET_UNINSTALLED_PACKAGES);
+        
         Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);  
         mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);  
         mlistAppInfo = new ArrayList<AppInfo>();
@@ -205,15 +222,19 @@ public class AgentAppInfo implements AgentBase{
 				String vn = "";
 				int vc=0;
 				if(null != pinfo) {
-                 vn = pinfo.versionName;
-                 vc = pinfo.versionCode;
+					if(null != pinfo.versionName) {
+						vn = pinfo.versionName;
+					}
+
+						vc = pinfo.versionCode;
                 
                  AgentLog.debug(TAG, "version name : "+vn+", version code : "+vc);
 				}
                 String appLabel = (String) reInfo.loadLabel(pm); // Label  
                 Drawable icon = reInfo.loadIcon(pm); //icon  
                 
-                saveAsFile((BitmapDrawable) icon, sdCardRoot+pkgName+File.separator, String.valueOf(vc)+".png");
+
+                saveAsFile((BitmapDrawable) icon, Contants.iconRoot+activityName+File.separator, String.valueOf(vc)+".png");
                 
                 Intent launchIntent = new Intent();  
                 launchIntent.setComponent(new ComponentName(pkgName,  
@@ -227,7 +248,7 @@ public class AgentAppInfo implements AgentBase{
                 appInfo.vc=vc;
                 appInfo.vn=vn;
                 appInfo.size = size;
-                appInfo.icon = sdCardRoot+pkgName+File.separator+String.valueOf(vc)+".png";
+                appInfo.icon = Contants.iconRoot+pkgName+File.separator+String.valueOf(vc)+".png";
                 appInfo.activityName = activityName;
                 mlistAppInfo.add(appInfo); //add to list  
                 AgentLog.debug(TAG, appLabel + " activityName---" + activityName  
@@ -236,6 +257,64 @@ public class AgentAppInfo implements AgentBase{
                 AgentLog.debug(TAG, "pakage size ,"+size);
             }  
         }  
+        
+        if(null != applist) {
+        	for(ApplicationInfo app: applist) {
+//        		PackageInfo p = app.get
+        		String pkgName = app.packageName;
+        		if(hasPackageExist(pkgName)) {
+        			continue;
+        		}
+                long size = 0;
+                try {
+					size = queryPacakgeSize(pkgName,app.uid);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+                
+                PackageInfo pinfo = null;
+				try {
+					pinfo = pm.getPackageInfo(pkgName, 0);
+
+				} catch (NameNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				String vn = "";
+				int vc=0;
+				if(null != pinfo) {
+                 vn = pinfo.versionName;
+                 vc = pinfo.versionCode;
+                
+                 AgentLog.debug(TAG, "version name : "+vn+", version code : "+vc);
+				}
+				
+                String appLabel = (String) app.loadLabel(pm); // Label  
+                Drawable icon = app.loadIcon(pm); //icon  
+                
+                saveAsFile((BitmapDrawable) icon, Contants.iconRoot+pkgName+File.separator, String.valueOf(vc)+".png");
+                
+                // appinfo
+                AppInfo appInfo = new AppInfo(); 
+                appInfo.setAppLabel(appLabel);  
+                appInfo.setPkgName(pkgName);  
+                appInfo.setAppIcon(icon);  
+
+                appInfo.vc=vc;
+                appInfo.vn=vn;
+                appInfo.size = size;
+                appInfo.icon = Contants.iconRoot+pkgName+File.separator+String.valueOf(vc)+".png";
+                appInfo.activityName = "";
+                mlistAppInfo.add(appInfo); //add to list  
+                AgentLog.debug(TAG, appLabel + " activityName---" + ""  
+                        + " pkgName---" + pkgName);  
+                
+                AgentLog.debug(TAG, "other pakage size ,"+size);
+                
+				
+        	}
+        }
     }  
 	
 

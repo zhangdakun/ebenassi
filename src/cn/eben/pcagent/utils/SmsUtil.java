@@ -1,7 +1,10 @@
 package cn.eben.pcagent.utils;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
+import android.provider.*;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
@@ -10,14 +13,32 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import cn.eben.pcagent.AgentLog;
+import cn.eben.pcagent.App;
+import cn.eben.pcagent.agents.Contants;
+
 public class SmsUtil {
-
-	public SmsUtil() {
-	}
-
+	public static final String ADDRESS = "address";
+	public static final String BODY = "body";
+	public static final String DATE = "date";
+	public static final int MESSAGE_TYPE_INBOX = 1;
+	public static final int MESSAGE_TYPE_SENT = 2;
+	public static final String MODE = "band";
+	public static final String PERSON = "person";
+	public static final String READ = "read";
+	public static final String STATUS = "status";
+	public static final String TYPE = "type";
+	public static final Uri smsUri = Uri.parse("content://sms/");
+	public static final String vmgAddress = (new StringBuilder(
+			String.valueOf(Environment.getExternalStorageDirectory()
+					.getAbsolutePath()))).
+					append("/backup/sms.vmg")
+			.toString();
+	
 	public static long dateToTime(String s) {
-		SimpleDateFormat simpledateformat = new SimpleDateFormat(
-				"EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
+//		SimpleDateFormat simpledateformat = new SimpleDateFormat(
+//				"EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
+		SimpleDateFormat simpledateformat = new SimpleDateFormat("yyyyMMddHHmmss");
 		long l;
 		try {
 			l = simpledateformat.parse(s).getTime();
@@ -31,80 +52,50 @@ public class SmsUtil {
 
 	}
 
-	private static String formatDate(long l) {
+	private static String formatDate(long time) {
 		String s;
-		if (l > 0L)
-			s = (new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy",
-					Locale.ENGLISH)).format(new Date(l));
+		if (time > 0L)
+			s = (new SimpleDateFormat("yyyyMMddHHmmss")).format(new Date(time));
 		else
-			s = null;
+			s = "";
 		return s;
 	}
 
-	public static List getBackup(ArrayList arraylist) {
-		ArrayList arraylist1;
-		BufferedReader bufferedreader;
-		int i;
-		FileInputStream fileinputstream;
-		arraylist1 = new ArrayList();
-		bufferedreader = null;
-		i = 0;
-		fileinputstream = null;
+	public static List getBackup(String vmg) {
+		ArrayList arraylistVmg = new ArrayList();
+		;
+		BufferedReader bufferedreader = null;
+		FileInputStream fileinputstream = null;
 
-		int j = arraylist.size();
-		// if(i < j) goto _L2; else goto _L1
-		// _L1:
-		// if(fileinputstream == null) goto _L4; else goto _L3
-		// _L3:
-		// fileinputstream.close();
-		// FileInputStream fileinputstream6 = null;
-		// _L26:
-		// if(bufferedreader == null) goto _L6; else goto _L5
-		// _L5:
-		// bufferedreader.close();
-		// fileinputstream6;
-		// _L18:
-		// ArrayList arraylist2 = arraylist1;
-		// _L11:
-		// return arraylist2;
-		// _L2:
-		File file;
-		boolean flag;
-		file = new File((String) arraylist.get(i));
-		flag = file.getParentFile().exists();
+		File file = new File(vmg);
+		if (!file.exists()) {
+			return arraylistVmg;
+		}
 
 		try {
 
-			FileInputStream fileinputstream4 = new FileInputStream(file);
-			BufferedReader bufferedreader2 = new BufferedReader(
-					new InputStreamReader(fileinputstream4));
+			fileinputstream = new FileInputStream(file);
+			bufferedreader = new BufferedReader(new InputStreamReader(
+					fileinputstream));
 			boolean flag1;
 			boolean flag2;
 			SmsMessage smsmessage;
-			StringBuffer stringbuffer;
+			StringBuffer stringbuffer = null;
 			flag1 = false;
 			flag2 = false;
 			smsmessage = null;
-			stringbuffer = null;
 
 			String s;
+			while(null != (s = bufferedreader.readLine())) {
 
-			{
-				s = bufferedreader2.readLine();
-
-				if (null == s) {
-					return arraylist1;
-				}
-				i++;
-				bufferedreader = bufferedreader2;
-				fileinputstream = fileinputstream4;
-			}
-
+//			if (null == s) {
+//				return arraylistVmg;
+//			}
 			if (s.contains("BEGIN:VMSG")) {
 				flag1 = true;
-				StringBuffer stringbuffer1 = new StringBuffer();
+				stringbuffer = new StringBuffer();
 				smsmessage = new SmsMessage();
-				stringbuffer = stringbuffer1;
+
 			} else if (flag1)
 				if (s.contains("X-MESSAGE-TYPE:")) {
 					int k = 1 + s.indexOf(":");
@@ -124,7 +115,7 @@ public class SmsUtil {
 				else if (s.contains("END:VBODY"))
 					flag2 = false;
 				else if (s.contains("END:VMSG")) {
-					arraylist1.add(smsmessage);
+					arraylistVmg.add(smsmessage);
 					flag1 = false;
 				} else if (flag2)
 					if (s.contains("Date")) {
@@ -133,11 +124,30 @@ public class SmsUtil {
 						stringbuffer.append(s);
 						smsmessage.setVBODY(stringbuffer.toString());
 					}
+			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			if (null != fileinputstream) {
+				try {
+					fileinputstream.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+
+			if (null != bufferedreader) {
+				try {
+					bufferedreader.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
-		return arraylist1;
+		return arraylistVmg;
 	}
 
 	public static String getCurrentTime() {
@@ -180,21 +190,132 @@ public class SmsUtil {
 		}
 		return arraylist;
 	}
+	
+	public static boolean isSmsExist(SmsMessage smsmessage,ArrayList<SmsMessage> arraylist) {
+		boolean isExist = false;
+		if(null != arraylist && !arraylist.isEmpty()) {
+			for(SmsMessage msg:arraylist) {
+				if(msg.getTEL().equalsIgnoreCase(smsmessage.getTEL())
+						&& msg.getVTIME().equalsIgnoreCase(smsmessage.getVTIME())
+						&& msg.getVBODY().equalsIgnoreCase(smsmessage.getVBODY())) {
+					isExist = true;
+					break;
+				}
+			}
+		}
+		return isExist;
+	}
+	public static void doRestoreVMG(Context context,String vmg) {
+        List list1;
+        list1 = SmsUtil.getBackup(vmg);
+        if(list1.isEmpty()) {
+        	AgentLog.error("smsutils", "sms restore null");
+        	return;
+        }
 
-	public static final String ADDRESS = "address";
-	public static final String BODY = "body";
-	public static final String DATE = "date";
-	public static final int MESSAGE_TYPE_INBOX = 1;
-	public static final int MESSAGE_TYPE_SENT = 2;
-	public static final String MODE = "band";
-	public static final String PERSON = "person";
-	public static final String READ = "read";
-	public static final String STATUS = "status";
-	public static final String TYPE = "type";
-	public static final Uri smsUri = Uri.parse("content://sms/");
-	public static final String vmgAddress = (new StringBuilder(
-			String.valueOf(Environment.getExternalStorageDirectory()
-					.getAbsolutePath()))).append("/ct_backup/sms.vmg")
-			.toString();
+        ArrayList list2 = getMessages(context);
+        int i = 0;
 
+        ContentValues contentvalues;
+//        try
+//        {
+//            Uri uri = ContentUris.withAppendedId(android.provider.Telephony.Sms.Conversations.CONTENT_URI, -1L);
+//            ContentResolver contentresolver = context.getContentResolver();
+//            int j = contentresolver.delete(uri, null, null);
+//        }
+//        catch(Exception e)
+//        {
+//            e.printStackTrace();
+//        }
+
+        for(i=0;i<list1.size();i++) {
+        	if(isSmsExist((SmsMessage)list1.get(i), list2)) {
+        		break;
+        	}
+	        contentvalues = new ContentValues();
+	        contentvalues.put("address", ((SmsMessage)list1.get(i)).getTEL());
+	        contentvalues.put("date", Long.valueOf(SmsUtil.dateToTime(((SmsMessage)list1.get(i)).getVTIME())));
+	        contentvalues.put("read", Integer.valueOf(1));
+	        contentvalues.put("status", Integer.valueOf(-1));
+	        contentvalues.put("type", ((SmsMessage)list1.get(i)).getMESSAGE_TYPE());
+	
+	        contentvalues.put("body", ((SmsMessage)list1.get(i)).getVBODY());
+	        context.getContentResolver().insert(SmsUtil.smsUri, contentvalues);
+        }
+
+    }
+
+	public static String backupSms() {
+		ArrayList list = SmsUtil.getMessages(App.getInstance()
+				.getApplicationContext());
+		String filename = Contants.backUpRoot +formatDate(System.currentTimeMillis())+ "backup.vmg";
+		File file1 = new File(filename);
+		file1.getParentFile().mkdirs();
+		if(list.isEmpty()) {
+			AgentLog.info("smsutil", "not found sms info,return a null file");
+			if(!file1.exists()) {
+				try {
+					file1.createNewFile();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			return filename;
+		}
+		FileOutputStream fileoutputstream = null;
+		OutputStreamWriter outputstreamwriter = null;
+		try {
+			fileoutputstream = new FileOutputStream(file1);
+
+			outputstreamwriter = new OutputStreamWriter(fileoutputstream,
+					"UTF-8");
+			int i = 0;
+			for(i=0;i<list.size();i++) {
+			try {
+				outputstreamwriter
+						.write((new StringBuilder(
+								"BEGIN:VMSG\nVERSION: 1.1\nX-IRMS-TYPE:MSG\nX-MESSAGE-TYPE:"))
+								.append(((SmsMessage) list.get(i))
+										.getMESSAGE_TYPE())
+								.append("\n")
+								.append("X-MA-TYPE:")
+								.append("")
+								.append("\nBEGIN:VCARD\nVERSION: 2.1\nTEL:")
+								.append(((SmsMessage) list.get(i)).getTEL())
+								.append("\nEND:VCARD\nBEGIN:VENV\nBEGIN:VBODY\nDate ")
+								.append(((SmsMessage) list.get(i)).getVTIME())
+								.append("\n")
+								.append(((SmsMessage) list.get(i)).getVBODY())
+								.append("\nEND:VBODY\nEND:VENV\nEND:VMSG\n")
+								.toString());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		} finally {
+			if(null != outputstreamwriter) {
+				try {
+					outputstreamwriter.close();
+					outputstreamwriter = null;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+		}
+		
+		return filename;
+
+	}
 }

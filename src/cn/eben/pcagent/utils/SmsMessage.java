@@ -7,10 +7,11 @@ package cn.eben.pcagent.utils;
 
 public class SmsMessage
 {
-
-    public SmsMessage()
-    {
-    }
+    private String MA_TYPE="";
+    private String MESSAGE_TYPE="";
+    private String TEL="";
+    private String VBODY="";
+    private String VTIME="";
 
     public String getMA_TYPE()
     {
@@ -62,9 +63,5 @@ public class SmsMessage
         VTIME = s;
     }
 
-    private String MA_TYPE;
-    private String MESSAGE_TYPE;
-    private String TEL;
-    private String VBODY;
-    private String VTIME;
+
 }

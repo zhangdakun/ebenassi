@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -13,30 +12,34 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ResolveInfo;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Handler;
 import android.provider.ContactsContract;
 import android.webkit.MimeTypeMap;
-
 import cn.eben.pcagent.AgentLog;
 import cn.eben.pcagent.App;
 import cn.eben.pcagent.service.PduBase;
+import cn.eben.pcagent.utils.SmsUtil;
 
 public class AgentSysBackup implements AgentBase {
 
 	public static final String TAG = "AgentSysBackup";
 
-	//{“ver”:1,”op”:”backupsys”,”srcs”:[{“package”:”cn.eben.enote”,”type”:”db”,”URI”: “content://uri”},…]}
-	//{“result”:”ok”,”code”:0,”srcs”:[ {“package”:”cn.eben.enote”,”type”:”db”, “URI”:”/mydoc/enote”},…]}
-	//或者:{“result”:”reason”,”code”:x}
-	//URI:响应中的URI应该为db产生的文件存放的新目录，建议为包名目录
-	
+	// {“ver”:1,”op”:”backupsys”,”srcs”:[{“package”:”cn.eben.enote”,”type”:”db”,”URI”:
+	// “content://uri”},…]}
+	// {“result”:”ok”,”code”:0,”srcs”:[ {“package”:”cn.eben.enote”,”type”:”db”,
+	// “URI”:”/mydoc/enote”},…]}
+	// 或者:{“result”:”reason”,”code”:x}
+	// URI:响应中的URI应该为db产生的文件存放的新目录，建议为包名目录
+
 	// private SimpleDateFormat mDateFormat = new
 	// SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
 	private SimpleDateFormat mDateFormat = new SimpleDateFormat(
@@ -92,21 +95,21 @@ public class AgentSysBackup implements AgentBase {
 			try {
 
 				JSONObject jsrc = ja.getJSONObject(i);
-				String type = null;
-				try {
-					type = jsrc.getString("type");
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					return new PduBase(
-							"{\"result\":\"error ,type not found\",\"code\":1}");
-				}
+//				String type = null;
+//				try {
+//					type = jsrc.getString("type");
+//				} catch (JSONException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//					return new PduBase(
+//							"{\"result\":\"error ,type not found\",\"code\":1}");
+//				}
 
-				if (!"db".equals(type)) {
-					// return null;
-					return new PduBase(
-							"{\"result\":\"error ,type not support\",\"code\":1}");
-				}
+//				if (!"db".equals(type)) {
+//					// return null;
+//					return new PduBase(
+//							"{\"result\":\"error ,type not support\",\"code\":1}");
+//				}
 
 				String app = "";
 				try {
@@ -126,15 +129,26 @@ public class AgentSysBackup implements AgentBase {
 				if ("com.android.contacts".equalsIgnoreCase(name)) {
 					target = Contants.backUpRoot
 							+ getFileName(System.currentTimeMillis()) + ".vcf";
-					if(exportVcf(target)) {
-					JSONObject jContact = new JSONObject();
-					jContact.put("package", name);
-					jContact.put("URI", target);
-					
+					if (exportVcf(target)) {
+						JSONObject jContact = new JSONObject();
+						jContact.put("package", name);
+						jContact.put("URI", target);
 
-					jAppResult.put(jContact);
+						jAppResult.put(jContact);
 					}
-				} else if (ContactsContract.Contacts.CONTENT_URI.toString()
+				} else if("com.android.mms".equalsIgnoreCase(name)) {
+					String smsfile = SmsUtil.backupSms();
+					if(null != smsfile) {
+						JSONObject jContact = new JSONObject();
+						jContact.put("package", name);
+						jContact.put("URI", smsfile);
+
+						jAppResult.put(jContact);
+					} else {
+						AgentLog.error(TAG, "failed to backup sms");
+					}
+				}
+				else if (ContactsContract.Contacts.CONTENT_URI.toString()
 						.equalsIgnoreCase(app)) {
 
 				} else {
@@ -168,29 +182,38 @@ public class AgentSysBackup implements AgentBase {
 			e.printStackTrace();
 		}
 
-		//test ..
-		openBackup(new File("/mnt/sdcard/backup.vcf"));
-		
-//		App.getInstance().getApplicationContext().runOnUiThread(new Runnable(){
+		// test ..
+//		openBackup(new File("/mnt/sdcard/backup.vcf"));
 //
-//			@Override
-//			public void run() {
-//				// TODO Auto-generated method stub
-//				openBackup(new File("/mnt/sdcard/backup.vcf"));
-//			}});
-//		//test 
+//		try {
+//			Thread.sleep(1000);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		
+//		isImportFinish();
+		// App.getInstance().getApplicationContext().runOnUiThread(new
+		// Runnable(){
+		//
+		// @Override
+		// public void run() {
+		// // TODO Auto-generated method stub
+		// openBackup(new File("/mnt/sdcard/backup.vcf"));
+		// }});
+		// //test
 		return new PduBase(jPackage.toString());
 	}
 
 	private boolean exportVcf(String target) {
-		
+
 		File dir = new File(Contants.backUpRoot);
 		if (!dir.exists()) {
 			dir.mkdirs();
 		}
-		File targetFile = new File(target) ;
-		
-		if(targetFile.exists()) {
+		File targetFile = new File(target);
+
+		if (targetFile.exists()) {
 			return true;
 		} else {
 			try {
@@ -228,61 +251,96 @@ public class AgentSysBackup implements AgentBase {
 			e.printStackTrace();
 			return false;
 		}
-		
+
+		return true;
+	}
+
+	private boolean openBackup(File savedVCard) {
+		if (!savedVCard.exists()) {
+			AgentLog.error(TAG, "openBackup ,file not exist");
+			return false;
+		}
+		try {
+			String vcfMimeType = MimeTypeMap.getSingleton()
+					.getMimeTypeFromExtension("vcf");
+			Intent openVcfIntent = new Intent(Intent.ACTION_VIEW);
+			openVcfIntent.setDataAndType(Uri.fromFile(savedVCard), vcfMimeType);
+			// Try to explicitly specify activity in charge of opening the vCard
+			// so that the user doesn't have to choose
+			// http://stackoverflow.com/questions/6827407/how-to-customize-share-intent-in-android/9229654#9229654
+			try {
+				if (App.getInstance().getApplicationContext()
+						.getPackageManager() != null) {
+					List<ResolveInfo> resolveInfos = App.getInstance()
+							.getApplicationContext().getPackageManager()
+							.queryIntentActivities(openVcfIntent, 0);
+					if (resolveInfos != null) {
+						for (ResolveInfo resolveInfo : resolveInfos) {
+							ActivityInfo activityInfo = resolveInfo.activityInfo;
+							if (activityInfo != null) {
+								String packageName = activityInfo.packageName;
+								String name = activityInfo.name;
+								// Find the needed Activity based on Android
+								// source files:
+								// http://grepcode.com/search?query=ImportVCardActivity&start=0&entity=type&n=
+								if (packageName != null
+										&& packageName
+												.equals("com.android.contacts")
+										&& name != null
+										&& name.contains("ImportVCardActivity")) {
+									openVcfIntent.setPackage(packageName);
+									break;
+								}
+							}
+						}
+					}
+				}
+			} catch (Exception ignored) {
+				ignored.printStackTrace();
+			}
+			openVcfIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			App.getInstance().getApplicationContext()
+					.startActivity(openVcfIntent);
+		} catch (Exception exception) {
+			exception.printStackTrace();
+			// No app for openning .vcf files installed (unlikely)
+			return false;
+		}
+
 		return true;
 	}
 	
-	private void openBackup(File savedVCard)
-	{
-		if(!savedVCard.exists()) {
-			AgentLog.error(TAG, "openBackup ,file not exist");
-			return;
+	
+	private boolean isImportServiceRunning() {
+		AgentLog.debug(TAG, "isMyServiceRunning,");
+		ActivityManager manager = (ActivityManager) App.getInstance()
+				.getApplicationContext()
+				.getSystemService(Context.ACTIVITY_SERVICE);
+		for (RunningServiceInfo service : manager
+				.getRunningServices(Integer.MAX_VALUE)) {
+			if ("com.android.contacts.vcard.VCardService"
+					.equals(service.service.getClassName())) {
+				return true;
+			}
+//			AgentLog.info(TAG,
+//					"service name : " + service.service.getClassName());
 		}
-	    try
-	    {
-	        String vcfMimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension("vcf");
-	        Intent openVcfIntent = new Intent(Intent.ACTION_VIEW);
-	        openVcfIntent.setDataAndType(Uri.fromFile(savedVCard), vcfMimeType);
-	        // Try to explicitly specify activity in charge of opening the vCard so that the user doesn't have to choose
-	        // http://stackoverflow.com/questions/6827407/how-to-customize-share-intent-in-android/9229654#9229654
-	        try
-	        {
-	            if (App.getInstance().getApplicationContext().getPackageManager() != null)
-	            {
-	                List<ResolveInfo> resolveInfos = App.getInstance().getApplicationContext().getPackageManager().queryIntentActivities(openVcfIntent, 0);
-	                if (resolveInfos != null)
-	                {
-	                    for (ResolveInfo resolveInfo : resolveInfos)
-	                    {
-	                        ActivityInfo activityInfo = resolveInfo.activityInfo;
-	                        if (activityInfo != null)
-	                        {
-	                            String packageName = activityInfo.packageName;
-	                            String name = activityInfo.name;
-	                            // Find the needed Activity based on Android source files: http://grepcode.com/search?query=ImportVCardActivity&start=0&entity=type&n=
-	                            if (packageName != null && packageName.equals("com.android.contacts") && name != null && name.contains("ImportVCardActivity"))
-	                            {
-	                                openVcfIntent.setPackage(packageName);
-	                                break;
-	                            }
-	                        }
-	                    }
-	                }
-	            }
-	        }
-	        catch (Exception ignored)
-	        {
-	        	ignored.printStackTrace();
-	        }
-	        openVcfIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); 
-	        App.getInstance().getApplicationContext().startActivity(openVcfIntent);
-	    }
-	    catch (Exception exception)
-	    {
-	    	exception.printStackTrace();
-	        // No app for openning .vcf files installed (unlikely)
-	    }
-
-        
+		return false;
+	}
+	
+	private boolean isImportFinish() {
+		boolean isrun = true;
+		while(isrun) {
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if(!isImportServiceRunning()) {
+			isrun = false;
+		}
+		}
+		return true;
 	}
 }

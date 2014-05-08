@@ -5,11 +5,9 @@ import java.io.File;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Context;
 import android.os.Build;
 import android.os.Environment;
 import cn.eben.pcagent.AgentLog;
-import cn.eben.pcagent.App;
 import cn.eben.pcagent.service.PduBase;
 import cn.eben.pcagent.utils.DiskMemory;
 import cn.eben.support.v1.util.DeviceProperties;
@@ -47,19 +45,19 @@ public class AgentSysInfo implements AgentBase{
 		String dev = Build.MODEL;
 		
 		String id = Build.ID;
-		String simpleId = null;
+//		String simpleId = null;
 		String release = Build.VERSION.RELEASE;
 		
-		if(null != id) {
-			String[]  part= new String(id).split("\\.");
-
-			
-			if(part.length >=2) {
-				simpleId = part[0]+"."+part[1];
-			}
-		}
-		
-		AgentLog.debug(TAG, "dev , "+dev+", id, "+id+",smpleid ,"+simpleId);
+//		if(null != id) {
+//			String[]  part= new String(id).split("\\.");
+//
+//			
+//			if(part.length >=2) {
+//				simpleId = part[0]+"."+part[1];
+//			}
+//		}
+//		
+//		AgentLog.debug(TAG, "dev , "+dev+", id, "+id+",smpleid ,"+simpleId);
 		File exDir = Environment.getExternalStorageDirectory();
 		
 		File dataFile = Environment.getDataDirectory();
@@ -89,13 +87,18 @@ public class AgentSysInfo implements AgentBase{
 		}
 		if(null != dev) {
 			try {
-				jo.put("product", dev);
+				jo.put("product", Build.PRODUCT);
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		
+		try {
+			jo.put("model", dev);
+		} catch (JSONException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		if(null != sn) {
 			try {
 				jo.put("SN", sn);
@@ -105,14 +108,15 @@ public class AgentSysInfo implements AgentBase{
 			}
 		}
 		
-		if(null != simpleId) {
-			try {
-				jo.put("fwver", simpleId);
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} else if(null != id) {
+//		if(null != simpleId) {
+//			try {
+//				jo.put("fwver", simpleId);
+//			} catch (JSONException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		} else 
+		if(null != id) {
 			try {
 				jo.put("fwver", id);
 			} catch (JSONException e) {
