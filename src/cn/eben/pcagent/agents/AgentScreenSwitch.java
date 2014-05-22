@@ -11,9 +11,12 @@ import java.util.ArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.Intent;
+
 
 import cn.eben.pcagent.AgentLog;
 import cn.eben.pcagent.App;
+import cn.eben.pcagent.MainActivity;
 import cn.eben.pcagent.service.PduBase;
 import cn.eben.pcagent.utils.SmsMessage;
 import cn.eben.pcagent.utils.SmsUtil;
@@ -26,7 +29,56 @@ public class AgentScreenSwitch  implements AgentBase{
 		// TODO Auto-generated method stub
 		//{ver:1,op:lockscreen,on:true/false}
 		AgentLog.debug(TAG, "processCmd : "+data);
-
+		
+		JSONObject jo;
+		try {
+			jo = new JSONObject(data);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return new PduBase("{result:\"error ,not a json data\",code:\"1\"}");
+		}
+		boolean lock = false;
+		try {
+			lock = jo.getBoolean("on");
+		} catch (JSONException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		String msg = "";
+		try {
+			msg=jo.getString("showmsg");
+		} catch (JSONException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		if(lock) {
+			Intent lockintent = new Intent();
+			lockintent.setClass(App.getInstance().getApplicationContext(), MainActivity.class);
+			lockintent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			lockintent.putExtra("lock", 0);
+			
+			lockintent.putExtra("showmsg", msg);
+			
+			App.getInstance().getApplicationContext().startActivity(lockintent);
+		} else {
+			try{
+//			App.getInstance().getLockActivity().exit();
+//				MainActivity.mInstace.exit();
+				
+				Intent lockintent = new Intent("cn.eben.pcmsg");
+//				lockintent.setClass(App.getInstance().getApplicationContext(), MainActivity.class);
+//				lockintent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				lockintent.putExtra("lock", 1);
+				
+//				App.getInstance().getApplicationContext().startActivity(lockintent);
+				App.getInstance().getApplicationContext().sendBroadcast(lockintent);
+				
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
 		JSONObject jPackage = new JSONObject();
 		try {
 			jPackage.put("result", "ok");

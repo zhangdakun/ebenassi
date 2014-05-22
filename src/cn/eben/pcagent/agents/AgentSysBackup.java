@@ -126,7 +126,8 @@ public class AgentSysBackup implements AgentBase {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				if ("com.android.contacts".equalsIgnoreCase(name)) {
+//				if ("com.android.contacts".equalsIgnoreCase(name)) {
+				if (name.contains("contacts")) {
 					target = Contants.backUpRoot
 							+ getFileName(System.currentTimeMillis()) + ".vcf";
 					if (exportVcf(target)) {

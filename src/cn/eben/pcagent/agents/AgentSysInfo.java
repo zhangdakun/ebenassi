@@ -1,6 +1,7 @@
 package cn.eben.pcagent.agents;
 
 import java.io.File;
+import java.lang.reflect.Method;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,7 +24,6 @@ public class AgentSysInfo implements AgentBase{
 		
 		AgentLog.debug(TAG, "processCmd : "+data);
 
-		
 		AgentLog.debug(TAG,"board, "+Build.BOARD
 				+",nootloader, "+Build.BOOTLOADER
 				+",cpu_abi,"+Build.CPU_ABI+
@@ -47,7 +47,17 @@ public class AgentSysInfo implements AgentBase{
 		String id = Build.ID;
 //		String simpleId = null;
 		String release = Build.VERSION.RELEASE;
-		
+		String buildutc = null;
+
+		try {
+		    Class<?> c = Class.forName("android.os.SystemProperties");
+		    Method get = c.getMethod("get", String.class);
+		    buildutc = (String) get.invoke(c, "ro.build.date.utc");
+		}
+		catch (Exception ignored) {
+
+		}
+		AgentLog.debug(TAG,"build utc : "+buildutc);
 //		if(null != id) {
 //			String[]  part= new String(id).split("\\.");
 //
@@ -93,6 +103,17 @@ public class AgentSysInfo implements AgentBase{
 				e.printStackTrace();
 			}
 		}
+		
+		if(null != buildutc) {
+			try {
+				jo.put("buildvc", buildutc);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
 		try {
 			jo.put("model", dev);
 		} catch (JSONException e1) {

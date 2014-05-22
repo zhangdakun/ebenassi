@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#ffffffff</color>
+    <color name="ShanLanSe">#ff00ffff</color>
+    <color name="black">#ff000000</color>
+    
+    <color name="lightblue">#01b0f1</color>
+    <color name="darkblcack">#cc000000</color>
+</resources>

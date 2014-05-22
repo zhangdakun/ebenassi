@@ -205,6 +205,7 @@ public class SmsUtil {
 		}
 		return isExist;
 	}
+	
 	public static void doRestoreVMG(Context context,String vmg) {
         List list1;
         list1 = SmsUtil.getBackup(vmg);

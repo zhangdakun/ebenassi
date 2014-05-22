@@ -11,8 +11,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 
-import cn.eben.pcagent.AgentLog;
 
+import cn.eben.pcagent.AgentLog;
+import cn.eben.pcagent.agents.AgentPeijianSys;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
@@ -129,6 +130,8 @@ public class DaemonService extends Service {
 			socketThread = new SocketThread(this,PORT);
 			socketThread.start();
 		}
+		
+		AgentPeijianSys.SetContext(getApplicationContext());
 	}
 
 	private SocketThread socketThread;

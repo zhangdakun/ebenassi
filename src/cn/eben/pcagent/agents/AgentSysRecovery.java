@@ -89,7 +89,8 @@ public class AgentSysRecovery implements AgentBase{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				if ("com.android.contacts".equalsIgnoreCase(name)) {
+//				if ("com.android.contacts".equalsIgnoreCase(name)) {
+				if (name.contains("contacts")) {
 					if(!address.isEmpty()) {
 						if(openBackup(new File(address))) {
 							isImportFinish();

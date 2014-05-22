@@ -24,6 +24,9 @@ public class AgentMgr {
 			agentMap.put("switchfilesys", Class.forName("cn.eben.pcagent.agents.AgentSwitchFileSys"));
 			agentMap.put("getappsinfo", Class.forName("cn.eben.pcagent.agents.AgentAppInfo"));
 			agentMap.put("lockscreen", Class.forName("cn.eben.pcagent.agents.AgentScreenSwitch"));
+			
+			agentMap.put("updatepeijian", Class.forName("cn.eben.pcagent.agents.AgentPeijianSys"));
+			agentMap.put("getpeijianapps", Class.forName("cn.eben.pcagent.agents.AgentPeijianSys"));
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
