@@ -52,7 +52,7 @@ public class SmsUtil {
 
 	}
 
-	private static String formatDate(long time) {
+	public static String formatDate(long time) {
 		String s;
 		if (time > 0L)
 			s = (new SimpleDateFormat("yyyyMMddHHmmss")).format(new Date(time));

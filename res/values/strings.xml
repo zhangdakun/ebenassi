@@ -7,7 +7,7 @@
     <string name="recovery">数据备份中，请稍候</string>
     
     <string name="summery">请保持E本与PC的连接！</string>
-    <string name="summery2">请暂时不要做任何操作已确保程序正常运行</string>
+    <string name="summery2">请暂时不要做任何操作以确保程序正常运行</string>
     <string name="recovery_ok">数据备份完成</string>
     
     <string name="exist">退出</string>

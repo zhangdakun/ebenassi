@@ -18,7 +18,7 @@
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:text="@string/recovery"
-        android:textSize="30sp" />
+        android:textSize="26sp" />
 
     <ProgressBar
         android:id="@+id/progressBar1"
@@ -38,7 +38,7 @@
         android:layout_below="@+id/textView1"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="18dp"
-        android:textSize="16sp"
+        android:textSize="12sp"
         android:text="@string/summery" />
     <TextView
         android:id="@+id/textView3"
@@ -47,7 +47,7 @@
         android:layout_below="@+id/textView2"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="18dp"
-        android:textSize="16sp"
+        android:textSize="12sp"
         android:text="@string/summery2" />
     <Button
         android:id="@+id/button1"

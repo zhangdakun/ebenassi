@@ -24,23 +24,23 @@ public class AgentSysInfo implements AgentBase{
 		
 		AgentLog.debug(TAG, "processCmd : "+data);
 
-		AgentLog.debug(TAG,"board, "+Build.BOARD
-				+",nootloader, "+Build.BOOTLOADER
-				+",cpu_abi,"+Build.CPU_ABI+
-				",device, "+Build.DEVICE
-				+", display, "+Build.DISPLAY
-				+",fp, "+Build.FINGERPRINT
-				+", hw ,"+Build.HARDWARE
-				+",id,"+Build.ID
-				+",famufacturer,"+Build.MANUFACTURER
-				+", model, "+Build.MODEL
-				+",product, "+Build.PRODUCT
-				+", codename, "+Build.VERSION.CODENAME
-				+", release, "+Build.VERSION.RELEASE+
-				",incremental, "+Build.VERSION.INCREMENTAL
-				+", serial, "+Build.SERIAL
-				+",tags, "+Build.TAGS+
-				",user,"+Build.USER);
+//		AgentLog.debug(TAG,"board, "+Build.BOARD
+//				+",nootloader, "+Build.BOOTLOADER
+//				+",cpu_abi,"+Build.CPU_ABI+
+//				",device, "+Build.DEVICE
+//				+", display, "+Build.DISPLAY
+//				+",fp, "+Build.FINGERPRINT
+//				+", hw ,"+Build.HARDWARE
+//				+",id,"+Build.ID
+//				+",famufacturer,"+Build.MANUFACTURER
+//				+", model, "+Build.MODEL
+//				+",product, "+Build.PRODUCT
+//				+", codename, "+Build.VERSION.CODENAME
+//				+", release, "+Build.VERSION.RELEASE+
+//				",incremental, "+Build.VERSION.INCREMENTAL
+//				+", serial, "+Build.SERIAL
+//				+",tags, "+Build.TAGS+
+//				",user,"+Build.USER);
 		
 		String dev = Build.MODEL;
 		
@@ -69,7 +69,7 @@ public class AgentSysInfo implements AgentBase{
 //		
 //		AgentLog.debug(TAG, "dev , "+dev+", id, "+id+",smpleid ,"+simpleId);
 		File exDir = Environment.getExternalStorageDirectory();
-		
+//		Environment.get
 		File dataFile = Environment.getDataDirectory();
 		
 		File mountFile = Environment.getExternalStoragePublicDirectory(Environment.MEDIA_MOUNTED);
@@ -103,7 +103,9 @@ public class AgentSysInfo implements AgentBase{
 				e.printStackTrace();
 			}
 		}
-		
+		if(null == buildutc) {
+			buildutc = "";
+		}
 		if(null != buildutc) {
 			try {
 				jo.put("buildvc", buildutc);

@@ -192,8 +192,6 @@ public class AgentAppInfo implements AgentBase{
         List<ResolveInfo> resolveInfos = pm  
                 .queryIntentActivities(mainIntent, 0);  
 
-//        List<ResolveInfo> resolveInfos = pm  
-//                .queryIntentActivities(mainIntent, PackageManager.MATCH_DEFAULT_ONLY);
         Collections.sort(resolveInfos,new ResolveInfo.DisplayNameComparator(pm));  
         if (mlistAppInfo != null) {  
             mlistAppInfo.clear();  

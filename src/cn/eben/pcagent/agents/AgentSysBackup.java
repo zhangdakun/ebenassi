@@ -78,8 +78,8 @@ public class AgentSysBackup implements AgentBase {
 		// return new
 		// PduBase("{result:\"error ,type not support\",code:\"1\"}");
 		// }
-		AgentLog.debug(TAG, "uri contact : "
-				+ ContactsContract.Contacts.CONTENT_URI.toString());
+//		AgentLog.debug(TAG, "uri contact : "
+//				+ ContactsContract.Contacts.CONTENT_URI.toString());
 		JSONArray ja = null;
 		try {
 			ja = jo.getJSONArray("srcs");
