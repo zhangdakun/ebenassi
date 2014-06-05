@@ -22,7 +22,7 @@ public class CallLogActivity extends Activity {
 		switch (v.getId()) {
 		case R.id.button1:
 //			new MmsUtil().backupMms(this);
-			new MmsUtil().restoreMms(this, "/mnt/sdcard/mms1.vmg");
+//			new MmsUtil().restoreMms(this, "/mnt/sdcard/mms1.vmg");
 //			new MmsUtil().restoreMms(this, "/mnt/sdcard/mms.vmsg");
 			
 			break;

@@ -27,7 +27,9 @@ import android.webkit.MimeTypeMap;
 import cn.eben.pcagent.AgentLog;
 import cn.eben.pcagent.App;
 import cn.eben.pcagent.service.PduBase;
+import cn.eben.pcagent.utils.MmsUtil;
 import cn.eben.pcagent.utils.SmsUtil;
+import cn.eben.pcagent.utils.ZipUtils;
 
 public class AgentSysBackup implements AgentBase {
 
@@ -48,13 +50,15 @@ public class AgentSysBackup implements AgentBase {
 	private String getFileName(long time) {
 		return mDateFormat.format(new Date(time));
 	}
-
+	private String errormsg="";
 	@Override
 	public PduBase processCmd(String data) {
 		// TODO Auto-generated method stub
 
 		AgentLog.debug(TAG, "processCmd : " + data);
 
+		int errorcode = 0;
+//		String errormsg = null;
 		JSONObject jo;
 		try {
 			jo = new JSONObject(data);
@@ -136,9 +140,28 @@ public class AgentSysBackup implements AgentBase {
 						jContact.put("URI", target);
 
 						jAppResult.put(jContact);
+					} else {
+						errorcode = 3; //contacts error 
 					}
 				} else if("com.android.mms".equalsIgnoreCase(name)) {
-					String smsfile = SmsUtil.backupSms();
+//					String smsfile = SmsUtil.backupSms();
+					String prefix = SmsUtil.formatDate(System.currentTimeMillis());
+					String smsname = Contants.backUpRoot +prefix+File.separator+ "sms.vmg";
+					String mmsname = Contants.backUpRoot +prefix+File.separator+ "mms.vmg";
+					new MmsUtil().backupMms(App.getInstance().getApplicationContext(), mmsname);
+					SmsUtil.backupSms(smsname);
+					
+					String zipname = Contants.backUpRoot +prefix+"msg.zip";
+					try {
+						ZipUtils.zip(new File(Contants.backUpRoot +prefix+File.separator), new File(zipname));
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+						errorcode = 2; // msg error
+						errormsg = e1.getLocalizedMessage();
+						zipname = null;
+					}
+					String smsfile = zipname;
 					if(null != smsfile) {
 						JSONObject jContact = new JSONObject();
 						jContact.put("package", name);
@@ -147,6 +170,8 @@ public class AgentSysBackup implements AgentBase {
 						jAppResult.put(jContact);
 					} else {
 						AgentLog.error(TAG, "failed to backup sms");
+						
+						
 					}
 				}
 				else if (ContactsContract.Contacts.CONTENT_URI.toString()
@@ -163,6 +188,7 @@ public class AgentSysBackup implements AgentBase {
 		}
 
 		JSONObject jPackage = new JSONObject();
+		if(0 == errorcode) {
 		try {
 			jPackage.put("result", "ok");
 		} catch (JSONException e) {
@@ -181,6 +207,20 @@ public class AgentSysBackup implements AgentBase {
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+		} else {
+			try {
+				jPackage.put("result", "error : "+errormsg);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				jPackage.put("code", errorcode);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 		// test ..
@@ -222,6 +262,7 @@ public class AgentSysBackup implements AgentBase {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				errormsg = e.getMessage();
 				return false;
 			}
 		}
@@ -250,6 +291,7 @@ public class AgentSysBackup implements AgentBase {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			errormsg = e.getMessage();
 			return false;
 		}
 

@@ -185,12 +185,23 @@ public class AgentSysInfo implements AgentBase{
 			}
 		}
 		
+//		if(null != exDir.toString()) {
+			try {
+				jo.put("sdcardpath", exDir.toString()+File.separator);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+//		}
+		
 		try {
 			jo.put("result", "ok");
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		
 		try {
 			jo.put("code", "0");
 		} catch (JSONException e) {

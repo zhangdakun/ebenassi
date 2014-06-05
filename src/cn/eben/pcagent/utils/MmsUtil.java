@@ -42,7 +42,7 @@ public class MmsUtil {
 	public static final Uri mmsInboxUri = Uri.parse("content://mms//inbox");
 	public static final Uri mmsSendboxUri = Uri.parse("content://mms//sentbox");
 
-	public String backupMms(Context context) {
+	public String backupMms(Context context,String filename) {
 		// ArrayList list = SmsUtil.getMessages(App.getInstance()
 		// .getApplicationContext());
 //		int mmsInboxSize = getMmsCount(context, "content://mms/inbox");
@@ -51,8 +51,8 @@ public class MmsUtil {
 //		totalNum = mmsInboxSize + mmsOutboxSize;
 //		curNum = 0;
 		AgentLog.debug(TAG, "backupMms");
-		String filename = Contants.backUpRoot
-				+ SmsUtil.formatDate(System.currentTimeMillis()) + "backup.vmg";
+//		String filename = Contants.backUpRoot
+//				+ SmsUtil.formatDate(System.currentTimeMillis()) + "backup.vmg";
 		File file1 = new File(filename);
 		file1.getParentFile().mkdirs();
 

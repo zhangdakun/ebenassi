@@ -245,11 +245,84 @@ public class SmsUtil {
         }
 
     }
-
-	public static String backupSms() {
+	public static String backupSms( ) {
 		ArrayList list = SmsUtil.getMessages(App.getInstance()
 				.getApplicationContext());
 		String filename = Contants.backUpRoot +formatDate(System.currentTimeMillis())+ "backup.vmg";
+		File file1 = new File(filename);
+		file1.getParentFile().mkdirs();
+		if(list.isEmpty()) {
+			AgentLog.info("smsutil", "not found sms info,return a null file");
+			if(!file1.exists()) {
+				try {
+					file1.createNewFile();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			return filename;
+		}
+		FileOutputStream fileoutputstream = null;
+		OutputStreamWriter outputstreamwriter = null;
+		try {
+			fileoutputstream = new FileOutputStream(file1);
+
+			outputstreamwriter = new OutputStreamWriter(fileoutputstream,
+					"UTF-8");
+			int i = 0;
+			for(i=0;i<list.size();i++) {
+			try {
+				outputstreamwriter
+						.write((new StringBuilder(
+								"BEGIN:VMSG\nVERSION: 1.1\nX-IRMS-TYPE:MSG\nX-MESSAGE-TYPE:"))
+								.append(((SmsMessage) list.get(i))
+										.getMESSAGE_TYPE())
+								.append("\n")
+								.append("X-MA-TYPE:")
+								.append("")
+								.append("\nBEGIN:VCARD\nVERSION: 2.1\nTEL:")
+								.append(((SmsMessage) list.get(i)).getTEL())
+								.append("\nEND:VCARD\nBEGIN:VENV\nBEGIN:VBODY\nDate ")
+								.append(((SmsMessage) list.get(i)).getVTIME())
+								.append("\n")
+								.append(((SmsMessage) list.get(i)).getVBODY())
+								.append("\nEND:VBODY\nEND:VENV\nEND:VMSG\n")
+								.toString());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		} finally {
+			if(null != outputstreamwriter) {
+				try {
+					outputstreamwriter.close();
+					outputstreamwriter = null;
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+		}
+		
+		return filename;
+
+	}
+	
+	public static String backupSms(String filename) {
+		ArrayList list = SmsUtil.getMessages(App.getInstance()
+				.getApplicationContext());
+//		String filename = Contants.backUpRoot +formatDate(System.currentTimeMillis())+ "backup.vmg";
 		File file1 = new File(filename);
 		file1.getParentFile().mkdirs();
 		if(list.isEmpty()) {

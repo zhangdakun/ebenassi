@@ -1,6 +1,7 @@
 package cn.eben.pcagent.agents;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -20,7 +21,9 @@ import android.webkit.MimeTypeMap;
 import cn.eben.pcagent.AgentLog;
 import cn.eben.pcagent.App;
 import cn.eben.pcagent.service.PduBase;
+import cn.eben.pcagent.utils.MmsUtil;
 import cn.eben.pcagent.utils.SmsUtil;
+import cn.eben.pcagent.utils.ZipUtils;
 
 public class AgentSysRecovery implements AgentBase{
 	public static final String TAG = "AgentSysRecovery";
@@ -100,7 +103,29 @@ public class AgentSysRecovery implements AgentBase{
 					}
 
 				} else if("com.android.mms".equalsIgnoreCase(name)) {
-					SmsUtil.doRestoreVMG(App.getInstance().getApplicationContext(),address);
+					if(address.endsWith(".zip")) {
+						String prefix = SmsUtil.formatDate(System.currentTimeMillis());
+						String msg = Contants.backUpRoot +prefix+File.separator ;
+//						String mmsname = Contants.backUpRoot +prefix+File.separator+ "mms.vmg";
+						try {
+							ZipUtils.unzip(new File(address), new File(msg));
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						File[] list = new File(msg).listFiles();
+						
+						for(File file : list) {
+							AgentLog.debug(TAG, "msg file : "+file.getName());
+							if(file.getName().contains("sms.vmg")) {
+								SmsUtil.doRestoreVMG(App.getInstance().getApplicationContext(),file.getAbsolutePath());
+							}else if(file.getName().contains("mms.vmg")) {
+								new MmsUtil().restoreMms(App.getInstance().getApplicationContext(), file.getAbsolutePath());
+							}
+						}
+					}else {
+						SmsUtil.doRestoreVMG(App.getInstance().getApplicationContext(),address);
+					}
 				}
 				else {
 					AgentLog.error(TAG, "uri not match : "
@@ -164,6 +189,14 @@ public class AgentSysRecovery implements AgentBase{
 												.equals("com.android.contacts")
 										&& name != null
 										&& name.contains("ImportVCardActivity")) {
+									openVcfIntent.setPackage(packageName);
+//									openVcfIntent.setClassName(packageName, name);
+									break;
+								} else if (packageName != null
+										&& packageName
+										.equals("com.ebensz.contacts")
+								&& name != null
+								&& name.contains("ImportVCardActivity")) {
 									openVcfIntent.setPackage(packageName);
 									break;
 								}

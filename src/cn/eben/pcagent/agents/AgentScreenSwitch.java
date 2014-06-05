@@ -6,20 +6,28 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.Context;
 import android.content.Intent;
+import android.os.Environment;
+import android.os.RecoverySystem;
 
 
 import cn.eben.pcagent.AgentLog;
 import cn.eben.pcagent.App;
 import cn.eben.pcagent.MainActivity;
 import cn.eben.pcagent.service.PduBase;
+import cn.eben.pcagent.utils.CallLogUtil;
+import cn.eben.pcagent.utils.MmsUtil;
 import cn.eben.pcagent.utils.SmsMessage;
 import cn.eben.pcagent.utils.SmsUtil;
+import cn.eben.pcagent.utils.ZipUtils;
 
 public class AgentScreenSwitch  implements AgentBase{
 	
@@ -78,6 +86,79 @@ public class AgentScreenSwitch  implements AgentBase{
 				e.printStackTrace();
 			}
 		}
+		
+//		File testfFile = new File("/sdcard/update.zip");
+//		if(testfFile.exists()) {
+//			AgentLog.debug(TAG, "file de pth: "+testfFile.getAbsolutePath());
+//		}
+//		String update = Environment.getExternalStorageDirectory().toString()+File.separator+"update.zip";
+//		File file = new File(update);
+//		if(!file.exists()) {
+//			AgentLog.error(TAG, "file not exist ,try other ");
+//			file = new File("/mnt/sdcard/update.zip");
+//			if(!file.exists()) {
+//				AgentLog.error(TAG, "mnt/sdcard/update.zip file not exist ,try other ");
+////				file = new File
+//			}
+//			
+//		}
+		
+//		new CallLogUtil().restoreCalllogs(App.getInstance().
+//				getApplicationContext(), "/mnt/sdcard/calllog1.xml");
+//		String prefix = SmsUtil.formatDate(System.currentTimeMillis());
+//		String smsname = Contants.backUpRoot +prefix+File.separator+ "sms.vmg";
+//		String mmsname = Contants.backUpRoot +prefix+File.separator+ "mms.vmg";
+//		new MmsUtil().backupMms(App.getInstance().getApplicationContext(), mmsname);
+//		SmsUtil.backupSms(smsname);
+//		
+//		String zipname = Contants.backUpRoot +prefix+"msg.zip";
+//		try {
+//			ZipUtils.zip(new File(Contants.backUpRoot +prefix+File.separator), new File(zipname));
+//		} catch (IOException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+		
+//		String updateaction = "com.ebensz.SYSTEM_UPDATE_REMOTE";
+//	     Intent localIntent = new Intent(updateaction);
+//	      localIntent.putExtra("file_name", "/sdcard/update.zip");
+//	      localIntent.putExtra("show_update_settings", true);
+//	      App.getInstance().getApplicationContext().startService(localIntent);
+//		Method recovery;
+//		try {
+//			try {
+//				Class<?> c = Class.forName("android.os.RecoverySystem");
+////				recovery = RecoverySystem.class.getMethod("installPackage", Context.class,File.class);
+//				recovery = c.getMethod("installPackage", Context.class,File.class);
+////				recovery.invoke(RecoverySystem.class, App.getInstance().getApplicationContext(),file);
+//				try {
+//					recovery.invoke(c, App.getInstance().getApplicationContext(),file);
+//				} catch (IllegalAccessException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				} catch (IllegalArgumentException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				} catch (InvocationTargetException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			} catch (ClassNotFoundException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+//
+//		} catch (NoSuchMethodException e2) {
+//			// TODO Auto-generated catch block
+//			e2.printStackTrace();
+//		}
+		
+//		try {
+//			RecoverySystem.installPackage(App.getInstance().getApplicationContext(), file);
+//		} catch (IOException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
 		
 		JSONObject jPackage = new JSONObject();
 		try {
