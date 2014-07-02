@@ -68,7 +68,7 @@ public class CallLogUtil {
 		// call.setText(sb);
 	}
 
-	public void backupCalllog(Context context, String name) {
+	public boolean backupCalllog(Context context, String name) {
 		FileWriter filewriter;
 		XmlSerializer xmlserializer;
 		File file1 = new File(name);
@@ -80,6 +80,7 @@ public class CallLogUtil {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				return false;
 			}
 		}
 
@@ -135,7 +136,9 @@ public class CallLogUtil {
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
+			return false;
 		}
+		return true;
 	}
 	
 	public boolean restoreCalllogs(Context context, String name) {

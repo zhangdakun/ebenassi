@@ -27,6 +27,7 @@ import android.webkit.MimeTypeMap;
 import cn.eben.pcagent.AgentLog;
 import cn.eben.pcagent.App;
 import cn.eben.pcagent.service.PduBase;
+import cn.eben.pcagent.utils.CallLogUtil;
 import cn.eben.pcagent.utils.MmsUtil;
 import cn.eben.pcagent.utils.SmsUtil;
 import cn.eben.pcagent.utils.ZipUtils;
@@ -35,12 +36,12 @@ public class AgentSysBackup implements AgentBase {
 
 	public static final String TAG = "AgentSysBackup";
 
-	// {¡°ver¡±:1,¡±op¡±:¡±backupsys¡±,¡±srcs¡±:[{¡°package¡±:¡±cn.eben.enote¡±,¡±type¡±:¡±db¡±,¡±URI¡±:
-	// ¡°content://uri¡±},¡­]}
-	// {¡°result¡±:¡±ok¡±,¡±code¡±:0,¡±srcs¡±:[ {¡°package¡±:¡±cn.eben.enote¡±,¡±type¡±:¡±db¡±,
-	// ¡°URI¡±:¡±/mydoc/enote¡±},¡­]}
-	// »òÕß:{¡°result¡±:¡±reason¡±,¡±code¡±:x}
-	// URI:ÏìÓ¦ÖÐµÄURIÓ¦¸ÃÎªdb²úÉúµÄÎÄ¼þ´æ·ÅµÄÐÂÄ¿Â¼£¬½¨ÒéÎª°üÃûÄ¿Â¼
+	// {ï¿½ï¿½verï¿½ï¿½:1,ï¿½ï¿½opï¿½ï¿½:ï¿½ï¿½backupsysï¿½ï¿½,ï¿½ï¿½srcsï¿½ï¿½:[{ï¿½ï¿½packageï¿½ï¿½:ï¿½ï¿½cn.eben.enoteï¿½ï¿½,ï¿½ï¿½typeï¿½ï¿½:ï¿½ï¿½dbï¿½ï¿½,ï¿½ï¿½URIï¿½ï¿½:
+	// ï¿½ï¿½content://uriï¿½ï¿½},ï¿½ï¿½]}
+	// {ï¿½ï¿½resultï¿½ï¿½:ï¿½ï¿½okï¿½ï¿½,ï¿½ï¿½codeï¿½ï¿½:0,ï¿½ï¿½srcsï¿½ï¿½:[ {ï¿½ï¿½packageï¿½ï¿½:ï¿½ï¿½cn.eben.enoteï¿½ï¿½,ï¿½ï¿½typeï¿½ï¿½:ï¿½ï¿½dbï¿½ï¿½,
+	// ï¿½ï¿½URIï¿½ï¿½:ï¿½ï¿½/mydoc/enoteï¿½ï¿½},ï¿½ï¿½]}
+	// ï¿½ï¿½ï¿½ï¿½:{ï¿½ï¿½resultï¿½ï¿½:ï¿½ï¿½reasonï¿½ï¿½,ï¿½ï¿½codeï¿½ï¿½:x}
+	// URI:ï¿½ï¿½Ó¦ï¿½Ðµï¿½URIÓ¦ï¿½ï¿½Îªdbï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½Åµï¿½ï¿½ï¿½Ä¿Â¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½Ä¿Â¼
 
 	// private SimpleDateFormat mDateFormat = new
 	// SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
@@ -161,6 +162,11 @@ public class AgentSysBackup implements AgentBase {
 						errormsg = e1.getLocalizedMessage();
 						zipname = null;
 					}
+					// del temp files
+					new File(smsname).delete();
+					new File(mmsname).delete();
+					new File(Contants.backUpRoot +prefix+File.separator).delete();
+					
 					String smsfile = zipname;
 					if(null != smsfile) {
 						JSONObject jContact = new JSONObject();
@@ -172,6 +178,19 @@ public class AgentSysBackup implements AgentBase {
 						AgentLog.error(TAG, "failed to backup sms");
 						
 						
+					}
+				} else if(name.contains("catlog")) { // call log 
+					target = Contants.backUpRoot
+							+ getFileName(System.currentTimeMillis()) + ".xml";
+					if (new CallLogUtil().backupCalllog(App.getInstance().getApplicationContext()
+							, target)) {
+						JSONObject jContact = new JSONObject();
+						jContact.put("package", name);
+						jContact.put("URI", target);
+
+						jAppResult.put(jContact);
+					} else {
+						errorcode = 3; //contacts error 
 					}
 				}
 				else if (ContactsContract.Contacts.CONTENT_URI.toString()
@@ -331,6 +350,13 @@ public class AgentSysBackup implements AgentBase {
 												.equals("com.android.contacts")
 										&& name != null
 										&& name.contains("ImportVCardActivity")) {
+									openVcfIntent.setPackage(packageName);
+									break;
+								}else if (packageName != null
+										&& packageName
+										.equals("com.ebensz.contacts")
+								&& name != null
+								&& name.contains("ImportVCardActivity")) {
 									openVcfIntent.setPackage(packageName);
 									break;
 								}

@@ -3,6 +3,7 @@ package cn.eben.pcagent;
 import cn.eben.pcagent.utils.CallLogUtil;
 import cn.eben.pcagent.utils.MmsUtil;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
@@ -21,6 +22,9 @@ public class CallLogActivity extends Activity {
 		AgentLog.debug("agent", "onClick");
 		switch (v.getId()) {
 		case R.id.button1:
+			Intent intent = new Intent();
+			intent.setClassName("cn.eben.androidsync", "cn.eben.android.Launcher");
+			startActivity(intent);
 //			new MmsUtil().backupMms(this);
 //			new MmsUtil().restoreMms(this, "/mnt/sdcard/mms1.vmg");
 //			new MmsUtil().restoreMms(this, "/mnt/sdcard/mms.vmsg");

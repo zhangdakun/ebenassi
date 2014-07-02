@@ -8,6 +8,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import se.tactel.contactcleanapp.cleanapp.CleanAppAdapter;
+import se.tactel.contactcleanapp.cleanapp.CleanAppManager;
+
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
@@ -20,23 +23,29 @@ import android.webkit.MimeTypeMap;
 
 import cn.eben.pcagent.AgentLog;
 import cn.eben.pcagent.App;
+import cn.eben.pcagent.contacts.ContactsUtil;
 import cn.eben.pcagent.service.PduBase;
+import cn.eben.pcagent.utils.CallLogUtil;
 import cn.eben.pcagent.utils.MmsUtil;
 import cn.eben.pcagent.utils.SmsUtil;
 import cn.eben.pcagent.utils.ZipUtils;
 
-public class AgentSysRecovery implements AgentBase{
+public class AgentSysRecovery implements AgentBase {
 	public static final String TAG = "AgentSysRecovery";
+	private String errormsg = "";
+
 	@Override
 	public PduBase processCmd(String data) {
 		// TODO Auto-generated method stub
-		//{¡°ver¡±:1,¡±op¡±:¡±recoverysys¡±, ¡°dsts¡±:[{¡°package¡±:¡±cn.eben.enote¡±,¡±type¡±:¡±db¡±, ¡°URI¡±:¡±/mydoc/enote¡±},¡­]}
-		//{¡°result¡±:¡±ok¡±,¡±code¡±:0}
-		//»òÕß:{¡°result¡±:¡±reason¡±,¡±code¡±:x}
-		//URI£ºÎªdbµÄURI£¬Êý¾ÝÎÄ¼þ´æ·ÅÄ¿Â¼Í¬±¸·Ý£¬Agent¸ù¾ÝÏàÍ¬¹æÔò»ñÈ¡±¾µØÎÄ¼þ
-		
-		AgentLog.debug(TAG, "processCmd : "+data);
-		
+		// {ï¿½ï¿½verï¿½ï¿½:1,ï¿½ï¿½opï¿½ï¿½:ï¿½ï¿½recoverysysï¿½ï¿½,
+		// ï¿½ï¿½dstsï¿½ï¿½:[{ï¿½ï¿½packageï¿½ï¿½:ï¿½ï¿½cn.eben.enoteï¿½ï¿½,ï¿½ï¿½typeï¿½ï¿½:ï¿½ï¿½dbï¿½ï¿½,
+		// ï¿½ï¿½URIï¿½ï¿½:ï¿½ï¿½/mydoc/enoteï¿½ï¿½},ï¿½ï¿½]}
+		// {ï¿½ï¿½resultï¿½ï¿½:ï¿½ï¿½okï¿½ï¿½,ï¿½ï¿½codeï¿½ï¿½:0}
+		// ï¿½ï¿½ï¿½ï¿½:{ï¿½ï¿½resultï¿½ï¿½:ï¿½ï¿½reasonï¿½ï¿½,ï¿½ï¿½codeï¿½ï¿½:x}
+		// URIï¿½ï¿½Îªdbï¿½ï¿½URIï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ä¿Â¼Í¬ï¿½ï¿½ï¿½Ý£ï¿½Agentï¿½ï¿½ï¿½ï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½
+
+		AgentLog.debug(TAG, "processCmd : " + data);
+		int errorcode = 0;
 		JSONObject jo;
 		try {
 			jo = new JSONObject(data);
@@ -45,7 +54,7 @@ public class AgentSysRecovery implements AgentBase{
 			e.printStackTrace();
 			return new PduBase("{result:\"error ,not a json data\",code:\"1\"}");
 		}
-		
+
 		JSONArray ja = null;
 		try {
 			ja = jo.getJSONArray("dsts");
@@ -61,21 +70,21 @@ public class AgentSysRecovery implements AgentBase{
 			try {
 
 				JSONObject jsrc = ja.getJSONObject(i);
-//				String type = null;
-//				try {
-//					type = jsrc.getString("type");
-//				} catch (JSONException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//					return new PduBase(
-//							"{\"result\":\"error ,type not found\",\"code\":1}");
-//				}
+				// String type = null;
+				// try {
+				// type = jsrc.getString("type");
+				// } catch (JSONException e) {
+				// // TODO Auto-generated catch block
+				// e.printStackTrace();
+				// return new PduBase(
+				// "{\"result\":\"error ,type not found\",\"code\":1}");
+				// }
 
-//				if (!"db".equals(type)) {
-//					// return null;
-//					return new PduBase(
-//							"{\"result\":\"error ,type not support\",\"code\":1}");
-//				}
+				// if (!"db".equals(type)) {
+				// // return null;
+				// return new PduBase(
+				// "{\"result\":\"error ,type not support\",\"code\":1}");
+				// }
 
 				String address = "";
 				try {
@@ -92,69 +101,117 @@ public class AgentSysRecovery implements AgentBase{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-//				if ("com.android.contacts".equalsIgnoreCase(name)) {
-				if (name.contains("contacts")) {
-					if(!address.isEmpty()) {
-						if(openBackup(new File(address))) {
-							isImportFinish();
-						} else {
-							AgentLog.error(TAG, "recovery contacts error");
+				if (new File(address).exists()) {
+					// if ("com.android.contacts".equalsIgnoreCase(name)) {
+					if (name.contains("contacts")) {
+						if (!address.isEmpty()) {
+							 if(openBackup(new File(address))) {
+								if( isImportFinish()) {
+							        CleanAppManager cleanappmanager = CleanAppManager.get(App.getInstance().getApplicationContext());
+							        cleanappmanager.startSearch(App.getInstance().getApplicationContext(), new CleanAppAdapter());
+								}
+							 } else {
+								 AgentLog.error(TAG, "recovery contacts error");
+							 }
+//							new ContactsUtil().restore(address);
+//							new File(address).delete();
 						}
-					}
 
-				} else if("com.android.mms".equalsIgnoreCase(name)) {
-					if(address.endsWith(".zip")) {
-						String prefix = SmsUtil.formatDate(System.currentTimeMillis());
-						String msg = Contants.backUpRoot +prefix+File.separator ;
-//						String mmsname = Contants.backUpRoot +prefix+File.separator+ "mms.vmg";
-						try {
-							ZipUtils.unzip(new File(address), new File(msg));
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+					} else if ("com.android.mms".equalsIgnoreCase(name)) {
+						if (address.endsWith(".zip")) {
+							String prefix = SmsUtil.formatDate(System
+									.currentTimeMillis());
+							String msg = Contants.backUpRoot + prefix
+									+ File.separator;
+							// String mmsname = Contants.backUpRoot
+							// +prefix+File.separator+ "mms.vmg";
+							try {
+								ZipUtils.unzip(new File(address), new File(msg));
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							File[] list = new File(msg).listFiles();
+
+							for (File file : list) {
+								AgentLog.debug(TAG,
+										"msg file : " + file.getName());
+								if (file.getName().contains("sms.vmg")) {
+									SmsUtil.doRestoreVMG(App.getInstance()
+											.getApplicationContext(), file
+											.getAbsolutePath());
+								} else if (file.getName().contains("mms.vmg")) {
+									new MmsUtil().restoreMms(App.getInstance()
+											.getApplicationContext(), file
+											.getAbsolutePath());
+								}
+								file.delete();
+							}
+							new File(address).delete();
+							new File(msg).delete();
+						} else {
+							SmsUtil.doRestoreVMG(App.getInstance()
+									.getApplicationContext(), address);
 						}
-						File[] list = new File(msg).listFiles();
-						
-						for(File file : list) {
-							AgentLog.debug(TAG, "msg file : "+file.getName());
-							if(file.getName().contains("sms.vmg")) {
-								SmsUtil.doRestoreVMG(App.getInstance().getApplicationContext(),file.getAbsolutePath());
-							}else if(file.getName().contains("mms.vmg")) {
-								new MmsUtil().restoreMms(App.getInstance().getApplicationContext(), file.getAbsolutePath());
+					} else if (name.contains("catlog")) {
+						if (!address.isEmpty()) {
+							if (new CallLogUtil().restoreCalllogs(App
+									.getInstance().getApplicationContext(),
+									address)) {
+
+							} else {
+								AgentLog.error(TAG, "recovery call log error");
 							}
 						}
-					}else {
-						SmsUtil.doRestoreVMG(App.getInstance().getApplicationContext(),address);
+					} else {
+						AgentLog.error(
+								TAG,
+								"uri not match : "
+										+ ContactsContract.Contacts.CONTENT_URI
+												.toString());
 					}
-				}
-				else {
-					AgentLog.error(TAG, "uri not match : "
-							+ ContactsContract.Contacts.CONTENT_URI.toString());
+				} else {
+					AgentLog.error(TAG, address + " file not exist");
 				}
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}		
+		}
 		JSONObject jPackage = new JSONObject();
-		try {
-			jPackage.put("result", "ok");
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (0 == errorcode) {
+			try {
+				jPackage.put("result", "ok");
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				jPackage.put("code", 0);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				jPackage.put("result", "error : " + errormsg);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				jPackage.put("code", errorcode);
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		try {
-			jPackage.put("code", 0);
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
 
 		return new PduBase(jPackage.toString());
 	}
 
 	private String errDes = "error";
+
 	private boolean openBackup(File savedVCard) {
 		if (!savedVCard.exists()) {
 			AgentLog.error(TAG, "openBackup ,file not exist");
@@ -190,13 +247,14 @@ public class AgentSysRecovery implements AgentBase{
 										&& name != null
 										&& name.contains("ImportVCardActivity")) {
 									openVcfIntent.setPackage(packageName);
-//									openVcfIntent.setClassName(packageName, name);
+									// openVcfIntent.setClassName(packageName,
+									// name);
 									break;
 								} else if (packageName != null
 										&& packageName
-										.equals("com.ebensz.contacts")
-								&& name != null
-								&& name.contains("ImportVCardActivity")) {
+												.equals("com.ebensz.contacts")
+										&& name != null
+										&& name.contains("ImportVCardActivity")) {
 									openVcfIntent.setPackage(packageName);
 									break;
 								}
@@ -219,38 +277,59 @@ public class AgentSysRecovery implements AgentBase{
 
 		return true;
 	}
-	
-	
+
 	private boolean isImportServiceRunning() {
-		AgentLog.debug(TAG, "isMyServiceRunning,");
+		AgentLog.debug(TAG, "isImportServiceRunning,");
 		ActivityManager manager = (ActivityManager) App.getInstance()
 				.getApplicationContext()
 				.getSystemService(Context.ACTIVITY_SERVICE);
+
+		// com.android.contacts
+		// com.ebensz.contacts
 		for (RunningServiceInfo service : manager
 				.getRunningServices(Integer.MAX_VALUE)) {
-			if ("com.android.contacts.vcard.VCardService"
-					.equals(service.service.getClassName())) {
+//			AgentLog.debug(TAG,service.service.getClassName());
+//			if ("com.android.contacts.vcard.VCardService"
+//					.equals(service.service.getClassName())) {
+//				AgentLog.debug(TAG, "com.android.contacts.vcard.VCardService");
+//				
+//				return true;
+//			} else if ("com.ebensz.contacts.vcard.VCardService"
+//					.equals(service.service.getClassName())) {
+//				AgentLog.debug(TAG, "com.ebensz.contacts.vcard.VCardService");
+//				return true;
+//			} else 
+				if ("com.android.contacts.common.vcard.VCardService"
+				.equals(service.service.getClassName())) {
+				AgentLog.debug(TAG, "com.android.contacts.common.vcard.VCardService");
 				return true;
-			}
-//			AgentLog.info(TAG,
-//					"service name : " + service.service.getClassName());
+			}			
+			// AgentLog.info(TAG,
+			// "service name : " + service.service.getClassName());
 		}
 		return false;
 	}
-	
+
 	private boolean isImportFinish() {
 		boolean isrun = true;
-		while(isrun) {
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		while (isrun) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (!isImportServiceRunning()) {
+				isrun = false;
+			}
 		}
-		if(!isImportServiceRunning()) {
-			isrun = false;
-		}
-		}
+		
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		return true;
 	}
 }

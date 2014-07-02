@@ -11,11 +11,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.thtf.ldydgz.android.update.service.IUpdateService;
-import com.thtf.ldydgz.android.update.service.IUpdateServiceCallback;
+import com.thtf.ldydgz.android.datamanager.update.service.IUpdateHelperService;
+import com.thtf.ldydgz.android.datamanager.update.service.IUpdateHelperServiceCallback;
 
 import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -37,9 +36,14 @@ public class AgentPeijianSys implements AgentBase {
 	public static final String TAG = "AgentPeijianSys";
 	public static Context mContext = null;
 	private boolean isConnected = false;
-	private IUpdateService mUpdateService = null;
+	private IUpdateHelperService mUpdateService = null;
 	private int mUpdateSuccess = -1;
 
+	private static final int TIMEOUT = 450;
+	private int mUpdateStatus = -1;
+	private int mReadyStatus = -1;
+	private String mResultMsg;
+	
 	private static final int READY_UPDATE_STATUS = 0x1001;
 	private static final int UPDATE_DATA_STATUS = 0x1002;
 
@@ -54,7 +58,9 @@ public class AgentPeijianSys implements AgentBase {
 
 		AgentLog.debug(TAG, "processCmd : " + data);
 
-		boolean isBindSuccess = mContext.bindService(new Intent("com.thtf.ldydgz.android.service.UpdateService"), mCurConnection, Context.BIND_AUTO_CREATE);
+		Intent intent = new Intent("com.thtf.ldydgz.android.datamanager.service.UpdateHelperService");
+		intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+		boolean isBindSuccess = mContext.bindService(intent, mCurConnection, Context.BIND_AUTO_CREATE);
 
 		JSONObject jo;
 		try {
@@ -68,7 +74,14 @@ public class AgentPeijianSys implements AgentBase {
 		JSONObject jResult = new JSONObject();
 		String op = null;
 		try {
-	    	if (!isConnected || mUpdateService == null)
+			int i = 0;
+			while(!isConnected && i < TIMEOUT)
+			{
+				i = i + 1;
+				Thread.sleep(2000);
+			}
+			
+	    	if (i >= TIMEOUT)
 				return new PduBase("{\"result\":\"Peijian service disconnect\",\"code\":100}");
 	    		
 			op = jo.getString("op");
@@ -78,25 +91,28 @@ public class AgentPeijianSys implements AgentBase {
 				//{ver:1,op:updatepeijian }
 				//{result:ok,code:0}
 				//或者:{result:reason,code:x}
-				if(!mUpdateService.isDirectUpdate())
+				mUpdateService.updateAppsData();
+				i = 0;
+				while (mUpdateStatus == -1 && i < TIMEOUT)
 				{
-					mContext.unbindService(mCurConnection);
-					return new PduBase("{\"result\":\"Peijian in using\",\"code\":101}");
+					i = i + 1;
+					Thread.sleep(2000);
 				}
-				String sStatus = mUpdateService.updateAppsData();
-			    //{
-			    //"update_status_code" : 1,
-			    //"update_status_msg" : "Ok"
-			    //"update_status_code" : 0,
-			    //"update_status_msg" : "Cancel"
-			    //}
-				JSONObject jStatus = new JSONObject(sStatus);
-				int nStatus = jStatus.getInt("update_status_code");
-				if(nStatus != 1)
+				if(i >= TIMEOUT)
 				{
 					mContext.unbindService(mCurConnection);
-					String sReason = jStatus.getString("update_status_msg");
-					return new PduBase("{\"result\":\"" + sReason + "\",\"code\":101}");
+					return new PduBase("{\"result\":\"query update result timeout!\",\"code\":102}");
+				}
+
+				if(mUpdateStatus == 0)
+				{
+					mContext.unbindService(mCurConnection);
+					return new PduBase("{\"result\":\"" + mResultMsg + "\",\"code\":102}");
+				}
+				else if(mUpdateStatus != 1)
+				{
+					mContext.unbindService(mCurConnection);
+					return new PduBase("{\"result\":\"unknown error!\",\"code\":5}");
 				}
 			}
 			else if(op.equals("getpeijianapps"))
@@ -119,7 +135,7 @@ public class AgentPeijianSys implements AgentBase {
 				     //"data_version_code" : 17
 				     //}
 
-					for (int i = 0; i < jAppList.length(); i++) {
+					for (i = 0; i < jAppList.length(); i++) {
 						JSONObject jApp = jAppList.getJSONObject(i);
 						String sAppPkg = jApp.getString("app_package_name");
 						if(sAppPkg != null)
@@ -130,9 +146,38 @@ public class AgentPeijianSys implements AgentBase {
 				else
 				{
 					mContext.unbindService(mCurConnection);
-					return new PduBase("{\"result\":\"Peijian get app list failed\",\"code\":102}");
+					return new PduBase("{\"result\":\"Peijian get app list failed\",\"code\":103}");
 				}
 			}
+			else if(op.equals("ispeijianready"))
+			{
+				//佩剑系统更新准备：IsPeijianReady
+				//{“ver”:1,”op”:”ispeijianready” }
+				//{“result”:”ok”,”code”:0,”ready”:1/0}
+				//或者:{“result”:”reason”,”code”:x}
+				mUpdateService.readyToUpdate();
+				i = 0;
+				while (mReadyStatus == -1 && i < TIMEOUT)
+				{
+					i = i + 1;
+					Thread.sleep(2000);
+				}
+				if(i >= TIMEOUT)
+				{
+					mContext.unbindService(mCurConnection);
+					return new PduBase("{\"result\":\"query ready to update status timeout!\",\"code\":101}");
+				}
+				
+				mContext.unbindService(mCurConnection);
+				if(mReadyStatus == -1)
+					return new PduBase("{\"result\":\"Peijian sys not ready to update!\",\"code\":101}");
+				else
+				{
+					jResult.put("result", "ok");
+					jResult.put("code", 0);
+					jResult.put("ready", mReadyStatus);
+					return new PduBase(jResult.toString());
+				}	}
 			else
 			{
 				mContext.unbindService(mCurConnection);
@@ -147,7 +192,10 @@ public class AgentPeijianSys implements AgentBase {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			mContext.unbindService(mCurConnection);
-			return new PduBase("{\"result\":\"Peijian call failed\",\"code\":103}");
+			return new PduBase("{\"result\":\"Peijian call failed\",\"code\":104}");
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 		try {
@@ -187,17 +235,21 @@ public class AgentPeijianSys implements AgentBase {
 			}
 		}
 	};*/
-	
-	private IUpdateServiceCallback mUpdateServiceCallback = new IUpdateServiceCallback.Stub() {
+
+	private IUpdateHelperServiceCallback mUpdateServiceCallback = new IUpdateHelperServiceCallback.Stub() {
 		
 		@Override
 		public void updateDataStatus(int statusCode, String msg) throws RemoteException {
 			//mUpdateServiceCallbackHandler.sendMessage(mUpdateServiceCallbackHandler.obtainMessage(UPDATE_DATA_STATUS, statusCode, -1, msg));
+			mUpdateStatus = statusCode;
+			mResultMsg = msg;
 		}
 		
 		@Override
 		public void readyUpdateStatus(int statusCode, String msg) throws RemoteException {
 			//mUpdateServiceCallbackHandler.sendMessage(mUpdateServiceCallbackHandler.obtainMessage(READY_UPDATE_STATUS, statusCode, -1, msg));
+			mReadyStatus = statusCode;
+			mResultMsg = msg;
 		}
 	};
 	
@@ -221,7 +273,7 @@ public class AgentPeijianSys implements AgentBase {
 		
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
-			mUpdateService = IUpdateService.Stub.asInterface(service);
+			mUpdateService = IUpdateHelperService.Stub.asInterface(service);
 			if (mUpdateServiceCallback != null) {
 				try {
 		            mUpdateService.registerCallback(mUpdateServiceCallback);

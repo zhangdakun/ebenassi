@@ -34,6 +34,7 @@ public class SmsUtil {
 					.getAbsolutePath()))).
 					append("/backup/sms.vmg")
 			.toString();
+	static String TAG = "SmsUtil";
 	
 	public static long dateToTime(String s) {
 //		SimpleDateFormat simpledateformat = new SimpleDateFormat(
@@ -184,15 +185,71 @@ public class SmsUtil {
 				else
 					smsmessage.setMESSAGE_TYPE("SUBMIT");
 				smsmessage.setVBODY(cursor.getString(4));
-				arraylist.add(smsmessage);
+				if(checkmsg(smsmessage)){
+					arraylist.add(smsmessage);
+				}
 			}
 			cursor.close();
 		}
 		return arraylist;
 	}
-	
+	private static boolean checkmsg(SmsMessage smsmessage) {
+		// TODO Auto-generated method stub
+		boolean isok = false;
+		
+//	    private String MA_TYPE="";
+//	    private String MESSAGE_TYPE="";
+//	    private String TEL="";
+//	    private String VBODY="";
+//	    private String VTIME="";
+
+		if(null != smsmessage.getTEL() 
+				&& !"".equalsIgnoreCase(smsmessage.getTEL())  &&
+		  null != smsmessage.getVBODY()
+				&& !"".equalsIgnoreCase(smsmessage.getVBODY())){
+			isok = true;
+		}
+		
+		return isok;
+	}
+
+	public static boolean isSmsExist(SmsMessage smsmessage,Context context) {
+		boolean isExist = false;
+		
+		String as[] = new String[1];
+		as[0] = "_id";
+//		String as1[] = new String[6];
+//		as1[0] = "_id";
+//		as1[1] = "address";
+//		as1[2] = "date";
+//		as1[3] = "type";
+//		as1[4] = "body";
+		String as1[] = new String[3];
+		as1[0] = smsmessage.getTEL();
+		as1[1] = String.valueOf(SmsUtil.dateToTime(smsmessage.getVTIME()));
+
+
+		
+		Cursor cursor = context.getApplicationContext().getContentResolver().query(smsUri, as,
+				"type !=3 AND address = ?  AND date = ?  ", null, null);
+		
+		if (cursor == null || cursor.getCount() <= 0) {
+			cursor.close();
+			return false;
+		} else {
+			isExist = true;
+		}
+		
+		
+		
+		return isExist;
+
+	}
 	public static boolean isSmsExist(SmsMessage smsmessage,ArrayList<SmsMessage> arraylist) {
 		boolean isExist = false;
+		try {
+			
+
 		if(null != arraylist && !arraylist.isEmpty()) {
 			for(SmsMessage msg:arraylist) {
 				if(msg.getTEL().equalsIgnoreCase(smsmessage.getTEL())
@@ -202,6 +259,10 @@ public class SmsUtil {
 					break;
 				}
 			}
+		}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
 		}
 		return isExist;
 	}
@@ -230,9 +291,16 @@ public class SmsUtil {
 //        }
 
         for(i=0;i<list1.size();i++) {
-        	if(isSmsExist((SmsMessage)list1.get(i), list2)) {
-        		break;
+        	if(!checkmsg((SmsMessage)list1.get(i))) {
+        		continue;
         	}
+        	if(isSmsExist((SmsMessage)list1.get(i), list2)) {
+        		continue;
+    	}
+//    	if(isSmsExist((SmsMessage)list1.get(i), context)) {
+//    		Log.debug(TAG,"find same sms");
+//    		break;
+//    	}
 	        contentvalues = new ContentValues();
 	        contentvalues.put("address", ((SmsMessage)list1.get(i)).getTEL());
 	        contentvalues.put("date", Long.valueOf(SmsUtil.dateToTime(((SmsMessage)list1.get(i)).getVTIME())));

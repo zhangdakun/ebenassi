@@ -19,13 +19,14 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.IBinder;
 
 public class DaemonService extends Service {
 
 	public static final String TAG = "DaemonService";
 	
-	public static final int PORT = 6001;
+	public static  int PORT = 6001;
 	
 	private static final Class<?>[] mSetForegroundSignature = new Class[] {
 	    boolean.class};
@@ -126,10 +127,10 @@ public class DaemonService extends Service {
 //        initMethod();
 //        startForegroundCompat(0x0700012,new Notification());
         
-		if(null == socketThread) {
-			socketThread = new SocketThread(this,PORT);
-			socketThread.start();
-		}
+//		if(null == socketThread) {
+//			socketThread = new SocketThread(this,PORT);
+//			socketThread.start();
+//		}
 		
 		AgentPeijianSys.SetContext(getApplicationContext());
 	}
@@ -140,6 +141,16 @@ public class DaemonService extends Service {
 		// TODO Auto-generated method stub
 //		return super.onStartCommand(intent, flags, startId);
 		AgentLog.debug(TAG, "onStartCommand");
+		
+		int maport = intent.getIntExtra("ma_port", 0);
+		if(0 != maport) {
+			AgentLog.debug(TAG,"got ma_port : "+maport);
+			PORT = maport;
+		}
+		if(null == socketThread) {
+			socketThread = new SocketThread(this,PORT);
+			socketThread.start();
+		}
 //		if(null == socketThread
 //				 || null == socketThread.getsocket() 
 //				 || socketThread.getsocket().isClosed()) {

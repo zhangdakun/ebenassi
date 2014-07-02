@@ -44,10 +44,10 @@ public class MainActivity extends Activity {
 					findViewById(R.id.textView2).setVisibility(View.VISIBLE);
 					break;
 				case 1:
-					text.setText(R.string.recovery_ok);
-					btn.setVisibility(View.VISIBLE);
-					progressBar1.setVisibility(View.INVISIBLE);
-					findViewById(R.id.textView2).setVisibility(View.INVISIBLE);
+//					text.setText(R.string.recovery_ok);
+//					btn.setVisibility(View.VISIBLE);
+//					progressBar1.setVisibility(View.INVISIBLE);
+//					findViewById(R.id.textView2).setVisibility(View.INVISIBLE);
 					finish();
 					break;
 

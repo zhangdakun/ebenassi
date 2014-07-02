@@ -56,6 +56,8 @@ public class AgentAppInfo implements AgentBase{
 	    
 	    PkgSizeObserver sizeob;
 	    public long size;
+	    boolean sysApp;
+	    
 	    public AppInfo(){}  
 	      
 	    public String getAppLabel() {  
@@ -139,7 +141,15 @@ public class AgentAppInfo implements AgentBase{
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}				
+				}			
+				
+				try {
+					jPackage.put("sysApp", app.sysApp);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}	
+				
 				ja.put(jPackage);
 			}
 		}
@@ -217,6 +227,12 @@ public class AgentAppInfo implements AgentBase{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				// custo
+				if ((pinfo.applicationInfo.flags & pinfo.applicationInfo.FLAG_SYSTEM) <= 0) { 
+					appInfo.sysApp = false;
+				} else {
+					appInfo.sysApp = true;
+				}
 				String vn = "";
 				int vc=0;
 				if(null != pinfo) {
@@ -279,6 +295,9 @@ public class AgentAppInfo implements AgentBase{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				
+
+				
 				String vn = "";
 				int vc=0;
 				if(null != pinfo) {
@@ -295,6 +314,13 @@ public class AgentAppInfo implements AgentBase{
                 
                 // appinfo
                 AppInfo appInfo = new AppInfo(); 
+                
+				if ((pinfo.applicationInfo.flags & pinfo.applicationInfo.FLAG_SYSTEM) <= 0) { 
+					appInfo.sysApp = false;
+				} else {
+					appInfo.sysApp = true;
+				}
+				
                 appInfo.setAppLabel(appLabel);  
                 appInfo.setPkgName(pkgName);  
                 appInfo.setAppIcon(icon);  
