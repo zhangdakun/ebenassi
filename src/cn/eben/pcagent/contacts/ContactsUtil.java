@@ -6,8 +6,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import cn.eben.agents.utils.SmsMessage;
 import cn.eben.pcagent.AgentLog;
-import cn.eben.pcagent.utils.SmsMessage;
 
 public class ContactsUtil {
 

@@ -8,9 +8,9 @@ import org.json.JSONObject;
 
 import android.os.Build;
 import android.os.Environment;
+import cn.eben.agents.service.PduBase;
+import cn.eben.agents.utils.DiskMemory;
 import cn.eben.pcagent.AgentLog;
-import cn.eben.pcagent.service.PduBase;
-import cn.eben.pcagent.utils.DiskMemory;
 import cn.eben.support.v1.util.DeviceProperties;
 
 public class AgentSysInfo implements AgentBase{
@@ -18,7 +18,7 @@ public class AgentSysInfo implements AgentBase{
 	
 //	{ver:1,op:getsysinfo}
 //
-//	{result:ok,code:0,dev:¡±Eben T8¡±,SN:H7xxxx,fwver:2.2,total:16G,free:7.3G,sysver:4.2.2}
+//	{result:ok,code:0,dev:??Eben T8??,SN:H7xxxx,fwver:2.2,total:16G,free:7.3G,sysver:4.2.2}
 	public PduBase processCmd(String data) {
 		// TODO Auto-generated method stub
 		

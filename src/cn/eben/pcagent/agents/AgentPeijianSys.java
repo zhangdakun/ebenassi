@@ -1,35 +1,20 @@
 package cn.eben.pcagent.agents;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.thtf.ldydgz.android.datamanager.update.service.IUpdateHelperService;
-import com.thtf.ldydgz.android.datamanager.update.service.IUpdateHelperServiceCallback;
 
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.res.AssetFileDescriptor;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.provider.ContactsContract;
-import android.util.Log;
-import android.widget.Toast;
+import cn.eben.agents.service.PduBase;
 import cn.eben.pcagent.AgentLog;
-import cn.eben.pcagent.App;
-import cn.eben.pcagent.service.PduBase;
+
+import com.thtf.ldydgz.android.datamanager.update.service.IUpdateHelperService;
+import com.thtf.ldydgz.android.datamanager.update.service.IUpdateHelperServiceCallback;
 
 public class AgentPeijianSys implements AgentBase {
 

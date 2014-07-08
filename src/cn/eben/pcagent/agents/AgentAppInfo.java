@@ -16,24 +16,21 @@ import org.json.JSONObject;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.IPackageStatsObserver;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.pm.PackageStats;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Environment;
 import android.os.RemoteException;
 import android.text.format.Formatter;
-import android.util.Log;
+import cn.eben.agents.service.PduBase;
 import cn.eben.pcagent.AgentLog;
 import cn.eben.pcagent.App;
-import cn.eben.pcagent.service.PduBase;
-
- 
-import android.content.pm.PackageStats;
-import android.content.pm.IPackageStatsObserver;
+import cn.eben.agents.service.*;
 
 public class AgentAppInfo implements AgentBase{
 
@@ -87,7 +84,7 @@ public class AgentAppInfo implements AgentBase{
 	}
 	
 	
-//	{result:ok,code:0,apps:[{vercode:1,package:cn.eben.sync,name:appname,version:1.2,vercode:14,size:123k,icon:xxxx},…]}
+//	{result:ok,code:0,apps:[{vercode:1,package:cn.eben.sync,name:appname,version:1.2,vercode:14,size:123k,icon:xxxx},??]}
 	@Override
 	public PduBase processCmd(String data) {
 		// TODO Auto-generated method stub
@@ -361,7 +358,7 @@ public class AgentAppInfo implements AgentBase{
         	}
         }  
     }  
-    //系统函数，字符串转换 long -String (kb)  
+    //???????????? long -String (kb)  
     private String formateFileSize(long size){  
         return Formatter.formatFileSize(App.getInstance().getApplicationContext(), size);   
     } 
@@ -398,7 +395,7 @@ public class AgentAppInfo implements AgentBase{
             catch(Exception ex){
                 AgentLog.error(TAG, "NoSuchMethodException") ;
                 ex.printStackTrace() ;
-                throw ex ;  // 抛出异常
+                throw ex ;  // ?????
             } 
         }
         

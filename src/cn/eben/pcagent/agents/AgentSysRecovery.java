@@ -10,7 +10,6 @@ import org.json.JSONObject;
 
 import se.tactel.contactcleanapp.cleanapp.CleanAppAdapter;
 import se.tactel.contactcleanapp.cleanapp.CleanAppManager;
-
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
@@ -20,15 +19,13 @@ import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.provider.ContactsContract;
 import android.webkit.MimeTypeMap;
-
+import cn.eben.agents.service.PduBase;
+import cn.eben.agents.utils.CallLogUtil;
+import cn.eben.agents.utils.MmsUtil;
+import cn.eben.agents.utils.SmsUtil;
+import cn.eben.agents.utils.ZipUtils;
 import cn.eben.pcagent.AgentLog;
 import cn.eben.pcagent.App;
-import cn.eben.pcagent.contacts.ContactsUtil;
-import cn.eben.pcagent.service.PduBase;
-import cn.eben.pcagent.utils.CallLogUtil;
-import cn.eben.pcagent.utils.MmsUtil;
-import cn.eben.pcagent.utils.SmsUtil;
-import cn.eben.pcagent.utils.ZipUtils;
 
 public class AgentSysRecovery implements AgentBase {
 	public static final String TAG = "AgentSysRecovery";
@@ -37,14 +34,12 @@ public class AgentSysRecovery implements AgentBase {
 	@Override
 	public PduBase processCmd(String data) {
 		// TODO Auto-generated method stub
-		// {��ver��:1,��op��:��recoverysys��,
-		// ��dsts��:[{��package��:��cn.eben.enote��,��type��:��db��,
-		// ��URI��:��/mydoc/enote��},��]}
-		// {��result��:��ok��,��code��:0}
-		// ����:{��result��:��reason��,��code��:x}
-		// URI��Ϊdb��URI������ļ����Ŀ¼ͬ���ݣ�Agent�����ͬ�����ȡ�����ļ�
-
-		AgentLog.debug(TAG, "processCmd : " + data);
+		//{��ver��:1,��op��:��recoverysys��, ��dsts��:[{��package��:��cn.eben.enote��,��type��:��db��, ��URI��:��/mydoc/enote��},��]}
+		//{��result��:��ok��,��code��:0}
+		//����:{��result��:��reason��,��code��:x}
+		//URI��Ϊdb��URI������ļ����Ŀ¼ͬ���ݣ�Agent�����ͬ�����ȡ�����ļ�
+		
+		AgentLog.debug(TAG, "processCmd : "+data);
 		int errorcode = 0;
 		JSONObject jo;
 		try {
@@ -325,7 +320,7 @@ public class AgentSysRecovery implements AgentBase {
 		}
 		
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(1500);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

@@ -1,33 +1,13 @@
 package cn.eben.pcagent.agents;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.content.Context;
 import android.content.Intent;
-import android.os.Environment;
-import android.os.RecoverySystem;
-
-
+import cn.eben.agents.service.PduBase;
 import cn.eben.pcagent.AgentLog;
 import cn.eben.pcagent.App;
 import cn.eben.pcagent.MainActivity;
-import cn.eben.pcagent.service.PduBase;
-import cn.eben.pcagent.utils.CallLogUtil;
-import cn.eben.pcagent.utils.MmsUtil;
-import cn.eben.pcagent.utils.SmsMessage;
-import cn.eben.pcagent.utils.SmsUtil;
-import cn.eben.pcagent.utils.ZipUtils;
 
 public class AgentScreenSwitch  implements AgentBase{
 	

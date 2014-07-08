@@ -6,9 +6,9 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import cn.eben.agents.service.PduBase;
 import cn.eben.pcagent.AgentLog;
-import cn.eben.pcagent.service.PduBase;
-
+import cn.eben.agents.service.*;
 
 public class AgentMgr {
 	
@@ -34,7 +34,7 @@ public class AgentMgr {
 		}
 	}
 //	{ver:1,op:getsysinfo}
-//	{result:ok,code:0,dev:¡±Eben T8¡±,SN:H7xxxx,fwver:2.2,total:16G,free:7.3G}
+//	{result:ok,code:0,dev:??Eben T8??,SN:H7xxxx,fwver:2.2,total:16G,free:7.3G}
 	public PduBase processPdu(PduBase pdubase) {
 		
 		String data = pdubase.getData();
